@@ -1,0 +1,89 @@
+import Agent from "@tokenring-ai/agent/Agent";
+import {z} from "zod";
+import TaskService from "../TaskService.ts";
+import {runAgent} from "@tokenring-ai/agent/tools";
+
+export const name = "tasks/run";
+
+export async function execute(
+  {tasks}: { tasks?: Array<{taskName: string; agentType: string; message: string; context: string}> },
+  agent: Agent
+): Promise<string> {
+  const taskService = agent.requireServiceByType(TaskService);
+
+  if (!tasks || tasks.length === 0) {
+    throw new Error(`[${name}] Missing task plan`);
+  }
+
+  // Present task plan to user
+  const taskPlan = tasks.map((task, i) => 
+    `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
+  ).join('\n\n');
+  
+  const approved = await agent.askHuman({
+    type: 'askForConfirmation',
+    message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`
+  });
+
+  if (!approved) {
+    const reason = await agent.askHuman({
+      type: 'ask',
+      question: 'Please explain why you are rejecting this task plan:'
+    });
+    return `Task plan rejected. Reason: ${reason}`;
+  }
+
+  // Add tasks and execute immediately
+  const taskIds = [];
+  for (const task of tasks) {
+    const taskId = taskService.addTask({
+      name: task.taskName,
+      agentType: task.agentType,
+      message: task.message,
+      context: task.context
+    }, agent);
+    taskIds.push(taskId);
+  }
+
+  // Execute all tasks
+  const results = [];
+  for (const task of tasks) {
+    const dbTask = taskService.getTasks(agent).find(t => t.name === task.taskName);
+    if (dbTask) {
+      taskService.updateTaskStatus(dbTask.id, 'running', undefined, agent);
+      
+      try {
+        const result = await runAgent.execute({
+          agentType: task.agentType,
+          message: task.message,
+          context: task.context
+        }, agent);
+        
+        if (result.ok) {
+          taskService.updateTaskStatus(dbTask.id, 'completed', result.response, agent);
+          results.push(`✓ ${task.taskName}: Completed`);
+        } else {
+          taskService.updateTaskStatus(dbTask.id, 'failed', result.response || result.error, agent);
+          results.push(`✗ ${task.taskName}: Failed - ${result.response || result.error}`);
+        }
+      } catch (error) {
+        taskService.updateTaskStatus(dbTask.id, 'failed', String(error), agent);
+        results.push(`✗ ${task.taskName}: Error - ${error}`);
+      }
+    }
+  }
+  
+  return `Task plan executed:\n${results.join('\n')}`;
+}
+
+export const description =
+  "Create and present a complete task plan to the user for approval. If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
+
+export const inputSchema = z.object({
+  tasks: z.array(z.object({
+    taskName: z.string().describe("A descriptive name for the task"),
+    agentType: z.string().describe("The type of agent that should handle this task"),
+    message: z.string().describe("A one paragraph message/description of what needs to be done, to send to the agent."),
+    context: z.string().describe("Three paragraphs of important contextual information to pass to the agent, such as file names, step by step instructions, descriptions, etc. of the exact steps the agent should take. This information is critical to proper agent functionality, and should be detailed and comprehensive. It needs to explain absolutely every aspect of how to complete the task to the agent that will be dispatched")
+  })).describe("Array of tasks to add to the task list"),
+});
