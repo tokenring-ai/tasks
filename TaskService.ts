@@ -50,7 +50,6 @@ export default class TaskService implements TokenRingService {
 
 
   async* getContextItems(agent: Agent): AsyncGenerator<ContextItem> {
-    debugger;
     if ( agent.tools.getActiveItemNames().has("@tokenring-ai/tasks/runTasks") &&
        ! agent.tools.getActiveItemNames().has("@tokenring-ai/agent/runAgent")) {
       // TODO: The agent package should be responsible for this, but it doesn't introduce the agent list unless the agent/run tool is active
