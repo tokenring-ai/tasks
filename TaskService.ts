@@ -1,6 +1,7 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {ContextItem, TokenRingService} from "@tokenring-ai/agent/types";
 import {Task, TaskState} from "./state/taskState.ts";
+import { v4 as uuid } from 'uuid';
 
 export default class TaskService implements TokenRingService {
   name = "TaskService";
@@ -11,7 +12,7 @@ export default class TaskService implements TokenRingService {
   }
 
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string {
-    const id = Math.random().toString(36).substring(2, 15);
+    const id = uuid();
     const newTask: Task = {
       ...task,
       id,
