@@ -1,7 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {z} from "zod";
 import TaskService from "../TaskService.ts";
-import {runAgent} from "@tokenring-ai/agent/tools";
 
 export const name = "tasks/run";
 
@@ -46,32 +45,7 @@ export async function execute(
   }
 
   // Execute all tasks
-  const results = [];
-  for (const task of tasks) {
-    const dbTask = taskService.getTasks(agent).find(t => t.name === task.taskName);
-    if (dbTask) {
-      taskService.updateTaskStatus(dbTask.id, 'running', undefined, agent);
-      
-      try {
-        const result = await runAgent.execute({
-          agentType: task.agentType,
-          message: task.message,
-          context: task.context
-        }, agent);
-        
-        if (result.ok) {
-          taskService.updateTaskStatus(dbTask.id, 'completed', result.response, agent);
-          results.push(`✓ ${task.taskName}: Completed`);
-        } else {
-          taskService.updateTaskStatus(dbTask.id, 'failed', result.response || result.error, agent);
-          results.push(`✗ ${task.taskName}: Failed - ${result.response || result.error}`);
-        }
-      } catch (error) {
-        taskService.updateTaskStatus(dbTask.id, 'failed', String(error), agent);
-        results.push(`✗ ${task.taskName}: Error - ${error}`);
-      }
-    }
-  }
+  const results = await taskService.executeTasks(taskIds, agent);
   
   return `Task plan executed:\n${results.join('\n')}`;
 }

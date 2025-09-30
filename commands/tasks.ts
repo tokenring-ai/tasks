@@ -1,9 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import TaskService from "../TaskService.ts";
 
-
-import { runAgent } from "@tokenring-ai/agent/tools"
-
 export const description =
   "/tasks [list|clear|execute] - Manage task list.";
 
@@ -53,31 +50,8 @@ export async function execute(remainder: string, agent: Agent) {
         return;
       }
 
-      let results = [];
-      
-      for (const task of pendingTasks) {
-        agent.infoLine(`Executing task: ${task.name}`);
-        taskService.updateTaskStatus(task.id, 'running', undefined, agent);
-        
-        try {
-          const result = await runAgent.execute({
-            agentType: task.agentType,
-            message: task.message,
-            context: task.context
-          }, agent);
-          
-          if (result.ok) {
-            taskService.updateTaskStatus(task.id, 'completed', result.response, agent);
-            results.push(`✓ ${task.name}: Completed`);
-          } else {
-            taskService.updateTaskStatus(task.id, 'failed', result.response || result.error, agent);
-            results.push(`✗ ${task.name}: Failed - ${result.response || result.error}`);
-          }
-        } catch (error) {
-          taskService.updateTaskStatus(task.id, 'failed', String(error), agent);
-          results.push(`✗ ${task.name}: Error - ${error}`);
-        }
-      }
+      const taskIds = pendingTasks.map(t => t.id);
+      const results = await taskService.executeTasks(taskIds, agent);
       
       agent.infoLine(`Task execution completed:\n${results.join('\n')}`);
       break;
