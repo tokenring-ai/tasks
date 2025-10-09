@@ -1,4 +1,4 @@
-import {AgentStateSlice} from "@tokenring-ai/agent/Agent";
+import type {AgentStateSlice} from "@tokenring-ai/agent/types";
 import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 
 export interface Task {
