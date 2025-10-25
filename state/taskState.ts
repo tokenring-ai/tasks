@@ -1,5 +1,5 @@
-import type {AgentStateSlice} from "@tokenring-ai/agent/types";
 import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
+import type {AgentStateSlice} from "@tokenring-ai/agent/types";
 
 export interface Task {
   id: string;
@@ -34,5 +34,16 @@ export class TaskState implements AgentStateSlice {
 
   deserialize(data: any): void {
     this.tasks = data.tasks ? [...data.tasks] : [];
+  }
+
+  show(): string[] {
+    const statusCounts = this.tasks.reduce((acc, t) => {
+      acc[t.status] = (acc[t.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return [
+      `Total Tasks: ${this.tasks.length}`,
+      ...Object.entries(statusCounts).map(([status, count]) => `  ${status}: ${count}`)
+    ];
   }
 }

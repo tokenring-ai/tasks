@@ -1,8 +1,10 @@
+import {AgentConfigService} from "@tokenring-ai/agent";
 import Agent from "@tokenring-ai/agent/Agent";
+import {runAgent} from "@tokenring-ai/agent/tools";
 import {ContextItem, TokenRingService} from "@tokenring-ai/agent/types";
+import {AIService} from "@tokenring-ai/ai-client";
+import {v4 as uuid} from 'uuid';
 import {Task, TaskState} from "./state/taskState.ts";
-import { v4 as uuid } from 'uuid';
-import { runAgent } from "@tokenring-ai/agent/tools";
 
 export default class TaskService implements TokenRingService {
   name = "TaskService";
@@ -95,12 +97,15 @@ export default class TaskService implements TokenRingService {
 
 
   async* getContextItems(agent: Agent): AsyncGenerator<ContextItem> {
-    if ( agent.tools.getActiveItemNames().has("@tokenring-ai/tasks/runTasks") &&
-       ! agent.tools.getActiveItemNames().has("@tokenring-ai/agent/runAgent")) {
+    const aiService = agent.requireServiceByType(AIService);
+    const enabledTools = aiService.getEnabledTools(agent);
+    if (enabledTools.includes("@tokenring-ai/tasks/runTasks") &&
+      !enabledTools.includes("@tokenring-ai/agent/runAgent")) {
       // TODO: The agent package should be responsible for this, but it doesn't introduce the agent list unless the agent/run tool is active
 
+      const agentConfigService = agent.requireServiceByType(AgentConfigService);
       // Get the list of available agent types from the agent team
-      const agentTypes = agent.team.getAgentConfigs()
+      const agentTypes = agentConfigService.getAgentConfigs();
 
       yield {
         position: "afterSystemMessage",
