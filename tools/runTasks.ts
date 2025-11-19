@@ -5,7 +5,7 @@ import TaskService from "../TaskService.ts";
 export const name = "tasks/run";
 
 export async function execute(
-  {tasks}: { tasks?: Array<{taskName: string; agentType: string; message: string; context: string}> },
+  {tasks}: { tasks?: Array<{ taskName: string; agentType: string; message: string; context: string }> },
   agent: Agent
 ): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
@@ -15,10 +15,10 @@ export async function execute(
   }
 
   // Present task plan to user
-  const taskPlan = tasks.map((task, i) => 
+  const taskPlan = tasks.map((task, i) =>
     `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
   ).join('\n\n');
-  
+
   const approved = await agent.askHuman({
     type: 'askForConfirmation',
     message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`
@@ -46,7 +46,7 @@ export async function execute(
 
   // Execute all tasks
   const results = await taskService.executeTasks(taskIds, agent);
-  
+
   return `Task plan executed:\n${results.join('\n')}`;
 }
 

@@ -16,7 +16,7 @@ export class TaskState implements AgentStateSlice {
   tasks: Task[] = [];
   persistToSubAgents = true;
 
-  constructor({tasks = []}: {tasks?: Task[]} = {}) {
+  constructor({tasks = []}: { tasks?: Task[] } = {}) {
     this.tasks = [...tasks];
   }
 

@@ -2,9 +2,13 @@
 
 ## Overview
 
-The `@tokenring-ai/tasks` package provides task planning and execution functionality for AI agents within the TokenRing framework. It enables agents to create comprehensive task plans, present them to users for approval, and automatically execute approved tasks by dispatching them to specialized agents. This package is designed for orchestrating complex multi-step workflows where different agent types handle specific tasks.
+The `@tokenring-ai/tasks` package provides task planning and execution functionality for AI agents within the TokenRing
+framework. It enables agents to create comprehensive task plans, present them to users for approval, and automatically
+execute approved tasks by dispatching them to specialized agents. This package is designed for orchestrating complex
+multi-step workflows where different agent types handle specific tasks.
 
 Key features:
+
 - Create and manage task plans with multiple tasks
 - Present task plans to users for approval via interactive interface
 - Automatic task execution upon approval
@@ -40,6 +44,7 @@ This package is part of the TokenRing AI ecosystem. To use it:
 ### TaskService
 
 Main service that manages task lifecycle:
+
 - `addTask()`: Add individual tasks to the list
 - `getTasks()`: Retrieve all tasks with current status
 - `updateTaskStatus()`: Update task execution status
@@ -49,6 +54,7 @@ Main service that manages task lifecycle:
 ### Task Interface
 
 Each task contains:
+
 - `id`: Unique identifier
 - `name`: Descriptive task name
 - `agentType`: Type of agent to handle the task
@@ -90,6 +96,7 @@ await agent.executeTool('tasks/add', {
 ### 2. Task Plan Approval Workflow
 
 When the tool executes:
+
 1. **Presents plan to user**:
    ```
    Task Plan:
@@ -140,14 +147,17 @@ When the tool executes:
 ## API Reference
 
 ### Tools
+
 - `tasks/add`: Create and execute complete task plans with user approval
 
-### Commands  
+### Commands
+
 - `/tasks list`: Show all tasks with status
 - `/tasks clear`: Remove all tasks
 - `/tasks execute`: Execute pending tasks manually
 
 ### Service Methods
+
 - `addTask(task, agent)`: Add single task
 - `getTasks(agent)`: Get all tasks
 - `updateTaskStatus(id, status, result, agent)`: Update task status

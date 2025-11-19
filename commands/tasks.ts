@@ -22,7 +22,7 @@ export async function execute(remainder: string, agent: Agent) {
         agent.infoLine("No tasks in the list");
         return;
       }
-      
+
       agent.infoLine("Current tasks:");
       tasks.forEach((task, index) => {
         agent.infoLine(`[${index}] ${task.name} (${task.status})`);
@@ -44,7 +44,7 @@ export async function execute(remainder: string, agent: Agent) {
     case "execute": {
       const tasks = taskService.getTasks(agent);
       const pendingTasks = tasks.filter(t => t.status === 'pending');
-      
+
       if (pendingTasks.length === 0) {
         agent.infoLine("No pending tasks to execute");
         return;
@@ -52,7 +52,7 @@ export async function execute(remainder: string, agent: Agent) {
 
       const taskIds = pendingTasks.map(t => t.id);
       const results = await taskService.executeTasks(taskIds, agent);
-      
+
       agent.infoLine(`Task execution completed:\n${results.join('\n')}`);
       break;
     }
@@ -67,7 +67,7 @@ export function help() {
   return [
     "/tasks [list|clear|execute]",
     "  - list: shows all tasks with their status",
-    "  - clear: removes all tasks from the list", 
+    "  - clear: removes all tasks from the list",
     "  - execute: executes all pending tasks by dispatching them to agents",
   ];
 }

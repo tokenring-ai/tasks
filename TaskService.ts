@@ -2,7 +2,7 @@ import {AgentConfigService} from "@tokenring-ai/agent";
 import Agent from "@tokenring-ai/agent/Agent";
 import {runAgent} from "@tokenring-ai/agent/tools";
 import {ContextItem, TokenRingService} from "@tokenring-ai/agent/types";
-import {AIService} from "@tokenring-ai/ai-client";
+import {ChatService} from "@tokenring-ai/chat";
 import {v4 as uuid} from 'uuid';
 import {Task, TaskState} from "./state/taskState.ts";
 
@@ -21,11 +21,11 @@ export default class TaskService implements TokenRingService {
       id,
       status: 'pending'
     };
-    
+
     agent.mutateState(TaskState, (state: TaskState) => {
       state.tasks.push(newTask);
     });
-    
+
     return id;
   }
 
@@ -62,23 +62,23 @@ export default class TaskService implements TokenRingService {
     const results: string[] = [];
     const tasks = this.getTasks(agent);
     const taskMap = new Map(tasks.map(t => [t.id, t]));
-    
+
     for (const taskId of taskIds) {
       const task = taskMap.get(taskId);
       if (!task) {
         results.push(`✗ Task ${taskId}: Not found`);
         continue;
       }
-      
+
       this.updateTaskStatus(task.id, 'running', undefined, agent);
-      
+
       try {
         const result = await runAgent.execute({
           agentType: task.agentType,
           message: task.message,
           context: task.context
         }, agent);
-        
+
         if (result.ok) {
           this.updateTaskStatus(task.id, 'completed', result.response, agent);
           results.push(`✓ ${task.name}: Completed`);
@@ -91,14 +91,14 @@ export default class TaskService implements TokenRingService {
         results.push(`✗ ${task.name}: Error - ${error}`);
       }
     }
-    
+
     return results;
   }
 
 
   async* getContextItems(agent: Agent): AsyncGenerator<ContextItem> {
-    const aiService = agent.requireServiceByType(AIService);
-    const enabledTools = aiService.getEnabledTools(agent);
+    const chatService = agent.requireServiceByType(ChatService);
+    const enabledTools = chatService.getEnabledTools(agent);
     if (enabledTools.includes("@tokenring-ai/tasks/runTasks") &&
       !enabledTools.includes("@tokenring-ai/agent/runAgent")) {
       // TODO: The agent package should be responsible for this, but it doesn't introduce the agent list unless the agent/run tool is active
@@ -119,10 +119,10 @@ export default class TaskService implements TokenRingService {
 
     const tasks = this.getTasks(agent);
     if (tasks.length > 0) {
-      const taskSummary = tasks.map(t => 
+      const taskSummary = tasks.map(t =>
         `- ${t.name} (${t.status}): ${t.agentType} - ${t.message}`
       ).join('\n');
-      
+
       yield {
         position: "afterPriorMessages",
         role: "user",
