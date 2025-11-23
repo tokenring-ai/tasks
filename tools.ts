@@ -1,1 +1,1 @@
-export * as runTasks from "./tools/runTasks.ts";
+export {default as runTasks} from "./tools/runTasks.ts";

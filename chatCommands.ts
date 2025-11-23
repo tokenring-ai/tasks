@@ -1,1 +1,1 @@
-export * as tasks from "./commands/tasks.ts";
+export {default as tasks} from "./commands/tasks.ts";

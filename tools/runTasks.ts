@@ -1,11 +1,12 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import TaskService from "../TaskService.ts";
 
-export const name = "tasks/run";
+const name = "tasks/run";
 
-export async function execute(
-  {tasks}: { tasks?: Array<{ taskName: string; agentType: string; message: string; context: string }> },
+async function execute(
+  {tasks}: z.infer<typeof inputSchema>,
   agent: Agent
 ): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
@@ -50,10 +51,10 @@ export async function execute(
   return `Task plan executed:\n${results.join('\n')}`;
 }
 
-export const description =
+const description =
   "Create and present a complete task plan to the user for approval. If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
 
-export const inputSchema = z.object({
+const inputSchema = z.object({
   tasks: z.array(z.object({
     taskName: z.string().describe("A descriptive name for the task"),
     agentType: z.string().describe("The type of agent that should handle this task"),
@@ -61,3 +62,7 @@ export const inputSchema = z.object({
     context: z.string().describe("Three paragraphs of important contextual information to pass to the agent, such as file names, step by step instructions, descriptions, etc. of the exact steps the agent should take. This information is critical to proper agent functionality, and should be detailed and comprehensive. It needs to explain absolutely every aspect of how to complete the task to the agent that will be dispatched")
   })).describe("Array of tasks to add to the task list"),
 });
+
+export default {
+  name, description, inputSchema, execute,
+} as TokenRingToolDefinition<typeof inputSchema>;

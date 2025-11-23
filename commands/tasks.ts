@@ -1,10 +1,11 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import TaskService from "../TaskService.ts";
 
-export const description =
+const description =
   "/tasks [list|clear|execute] - Manage task list.";
 
-export async function execute(remainder: string, agent: Agent) {
+async function execute(remainder: string, agent: Agent) {
   const taskService = agent.requireServiceByType(TaskService);
 
   if (!remainder?.trim()) {
@@ -71,3 +72,8 @@ export function help() {
     "  - execute: executes all pending tasks by dispatching them to agents",
   ];
 }
+export default {
+  description,
+  execute,
+  help,
+} as TokenRingAgentCommand
