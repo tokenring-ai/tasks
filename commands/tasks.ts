@@ -64,7 +64,7 @@ async function execute(remainder: string, agent: Agent) {
   }
 }
 
-export function help() {
+function help() {
   return [
     "/tasks [list|clear|execute]",
     "  - list: shows all tasks with their status",
