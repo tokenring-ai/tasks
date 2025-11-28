@@ -3,13 +3,13 @@ import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import TaskService from "../TaskService.ts";
 
 const description =
-  "/tasks [list|clear|execute] - Manage task list.";
+  "/tasks - Manage and execute tasks in the task queue.";
 
 async function execute(remainder: string, agent: Agent) {
   const taskService = agent.requireServiceByType(TaskService);
 
   if (!remainder?.trim()) {
-    help().forEach(line => agent.infoLine(line));
+    agent.chatOutput(help);
     return;
   }
 
@@ -64,16 +64,63 @@ async function execute(remainder: string, agent: Agent) {
   }
 }
 
-function help() {
-  return [
-    "/tasks [list|clear|execute]",
-    "  - list: shows all tasks with their status",
-    "  - clear: removes all tasks from the list",
-    "  - execute: executes all pending tasks by dispatching them to agents",
-  ];
-}
+const help: string = `# TASKS COMMAND
+
+## Usage
+
+/tasks [operation]
+
+Manage and execute tasks in the task queue. This command allows you to view, clear, and execute tasks that have been queued for processing by different agents in the system.
+
+## Available Operations
+
+### list
+
+Display all tasks in the current task queue with their status, agent type, and message content.
+
+**Example:**
+/tasks list
+
+**Output:**
+Current tasks:
+[0] Process Data (pending)
+    Agent: data-processor
+    Message: Process the uploaded CSV file
+[1] Send Email (completed)
+    Agent: email-sender
+    Message: Send confirmation email to user@example.com
+
+### clear
+
+Remove all tasks from the current task queue. This action cannot be undone.
+
+**Example:**
+/tasks clear
+
+**Output:** Cleared all tasks
+
+### execute
+
+Execute all pending tasks by dispatching them to their respective agents. Only tasks with 'pending' status will be executed.
+
+**Example:**
+/tasks execute
+
+**Output:**
+Task execution completed:
+Task #123 executed successfully by data-processor
+Task #456 executed successfully by email-sender
+
+## Common Use Cases
+
+- View current workload: \`/tasks list\`
+- Clean up completed tasks: \`/tasks clear\`
+- Process pending work: \`/tasks execute\`
+
+**Note:** The execute operation will only process tasks with 'pending' status. Completed or failed tasks will remain in the queue until manually cleared.`;
+
 export default {
   description,
   execute,
   help,
-} as TokenRingAgentCommand
+} as TokenRingAgentCommand;

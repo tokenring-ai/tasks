@@ -27,7 +27,7 @@ async function execute(
 
   if (!approved) {
     const reason = await agent.askHuman({
-      type: 'ask',
+      type: 'askForText',
       message: 'Please explain why you are rejecting this task plan:'
     });
     return `Task plan rejected. Reason: ${reason}`;

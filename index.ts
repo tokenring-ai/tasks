@@ -3,10 +3,10 @@ import {AgentCommandService} from "@tokenring-ai/agent";
 import {ChatService} from "@tokenring-ai/chat";
 import {TokenRingPlugin} from "@tokenring-ai/app";
 
-import * as chatCommands from "./chatCommands.ts";
+import chatCommands from "./chatCommands.ts";
 import packageJSON from './package.json' with {type: 'json'};
 import TaskService from "./TaskService.js";
-import * as tools from "./tools.ts";
+import tools from "./tools.ts";
 
 export default {
   name: packageJSON.name,
