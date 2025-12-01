@@ -14,10 +14,14 @@ export interface Task {
 export class TaskState implements AgentStateSlice {
   name = "TaskState";
   tasks: Task[] = [];
+  autoApprove: boolean = false;
+  parallelTasks: number = 1;
   persistToSubAgents = true;
 
-  constructor({tasks = []}: { tasks?: Task[] } = {}) {
+  constructor({tasks = [], autoApprove = false, parallelTasks = 1}: { tasks?: Task[], autoApprove?: boolean, parallelTasks?: number } = {}) {
     this.tasks = [...tasks];
+    this.autoApprove = autoApprove;
+    this.parallelTasks = parallelTasks;
   }
 
   reset(what: ResetWhat[]): void {
@@ -29,11 +33,15 @@ export class TaskState implements AgentStateSlice {
   serialize(): object {
     return {
       tasks: this.tasks,
+      autoApprove: this.autoApprove,
+      parallelTasks: this.parallelTasks,
     };
   }
 
   deserialize(data: any): void {
     this.tasks = data.tasks ? [...data.tasks] : [];
+    this.autoApprove = data.autoApprove ?? false;
+    this.parallelTasks = data.parallelTasks ?? 1;
   }
 
   show(): string[] {
@@ -43,7 +51,9 @@ export class TaskState implements AgentStateSlice {
     }, {} as Record<string, number>);
     return [
       `Total Tasks: ${this.tasks.length}`,
-      ...Object.entries(statusCounts).map(([status, count]) => `  ${status}: ${count}`)
+      ...Object.entries(statusCounts).map(([status, count]) => `  ${status}: ${count}`),
+      `Auto-approve: ${this.autoApprove}`,
+      `Parallel tasks: ${this.parallelTasks}`
     ];
   }
 }

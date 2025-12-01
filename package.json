@@ -8,7 +8,11 @@
   "zod": "^4.1.13",
   "@tokenring-ai/agent": "0.2.0",
   "@tokenring-ai/utility": "0.2.0",
-  "uuid": "^13.0.0"
+  "uuid": "^13.0.0",
+  "async": "^3.2.6"
+ },
+ "devDependencies": {
+  "@types/async": "^3.2.25"
  },
  "exports": {
   ".": "./index.ts",

@@ -58,6 +58,31 @@ async function execute(remainder: string, agent: Agent) {
       break;
     }
 
+    case "auto-approve": {
+      const value = parts[1]?.toLowerCase();
+      if (value === 'on' || value === 'true') {
+        taskService.setAutoApprove(true, agent);
+        agent.infoLine("Auto-approve enabled");
+      } else if (value === 'off' || value === 'false') {
+        taskService.setAutoApprove(false, agent);
+        agent.infoLine("Auto-approve disabled");
+      } else {
+        agent.errorLine("Usage: /tasks auto-approve [on|off]");
+      }
+      break;
+    }
+
+    case "parallel": {
+      const count = parseInt(parts[1], 10);
+      if (isNaN(count) || count < 1) {
+        agent.errorLine("Usage: /tasks parallel [number >= 1]");
+      } else {
+        taskService.setParallelTasks(count, agent);
+        agent.infoLine(`Parallel tasks set to ${count}`);
+      }
+      break;
+    }
+
     default:
       agent.errorLine("Unknown operation");
       return;
@@ -111,11 +136,28 @@ Task execution completed:
 Task #123 executed successfully by data-processor
 Task #456 executed successfully by email-sender
 
+### auto-approve
+
+Enable or disable automatic approval of task plans. When enabled, task plans will execute immediately without user confirmation.
+
+**Example:**
+/tasks auto-approve on
+/tasks auto-approve off
+
+### parallel
+
+Set the number of tasks that can run in parallel (default: 1).
+
+**Example:**
+/tasks parallel 3
+
 ## Common Use Cases
 
 - View current workload: \`/tasks list\`
 - Clean up completed tasks: \`/tasks clear\`
 - Process pending work: \`/tasks execute\`
+- Enable auto-execution: \`/tasks auto-approve on\`
+- Run multiple tasks simultaneously: \`/tasks parallel 5\`
 
 **Note:** The execute operation will only process tasks with 'pending' status. Completed or failed tasks will remain in the queue until manually cleared.`;
 

@@ -15,22 +15,33 @@ async function execute(
     throw new Error(`[${name}] Missing task plan`);
   }
 
-  // Present task plan to user
-  const taskPlan = tasks.map((task, i) =>
-    `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
-  ).join('\n\n');
+  agent.chatOutput(`The following task plan has been generated:`)
+  agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join('\n'));
 
-  const approved = await agent.askHuman({
-    type: 'askForConfirmation',
-    message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`
-  });
+  // Check auto-approve setting
+  const autoApprove = taskService.getAutoApprove(agent);
+  let approved = autoApprove;
 
-  if (!approved) {
-    const reason = await agent.askHuman({
-      type: 'askForText',
-      message: 'Please explain why you are rejecting this task plan:'
+  if (autoApprove) {
+    agent.infoLine("Auto-approve enabled, executing task plan without user confirmation");
+  } else {
+    // Present task plan to user
+    const taskPlan = tasks.map((task, i) =>
+      `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
+    ).join('\n\n');
+
+    approved = await agent.askHuman({
+      type: 'askForConfirmation',
+      message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`
     });
-    return `Task plan rejected. Reason: ${reason}`;
+
+    if (!approved) {
+      const reason = await agent.askHuman({
+        type: 'askForText',
+        message: 'Please explain why you are rejecting this task plan:'
+      });
+      return `Task plan rejected. Reason: ${reason}`;
+    }
   }
 
   // Add tasks and execute immediately
@@ -52,7 +63,7 @@ async function execute(
 }
 
 const description =
-  "Create and present a complete task plan to the user for approval. If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
+  "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
 
 const inputSchema = z.object({
   tasks: z.array(z.object({
