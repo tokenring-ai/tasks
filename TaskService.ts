@@ -97,38 +97,4 @@ export default class TaskService implements TokenRingService {
   }
 
 
-  async* getContextItems(agent: Agent): AsyncGenerator<ContextItem> {
-    const chatService = agent.requireServiceByType(ChatService);
-    const enabledTools = chatService.getEnabledTools(agent);
-    if (enabledTools.includes("@tokenring-ai/tasks/runTasks") &&
-      !enabledTools.includes("@tokenring-ai/agent/runAgent")) {
-      // TODO: The agent package should be responsible for this, but it doesn't introduce the agent list unless the agent/run tool is active
-
-      const agentManager = agent.requireServiceByType(AgentManager);
-      // Get the list of available agent types from the agent team
-      const agentTypes = agentManager.getAgentConfigs();
-
-      yield {
-        position: "afterSystemMessage",
-        role: "user",
-        content: `/* The following agent types can be run with the tasks/run tool */` +
-          Object.entries(agentTypes).map(([name, config]) =>
-            `- ${name}: ${config.description}`
-          ).join("\n")
-      };
-    }
-
-    const tasks = this.getTasks(agent);
-    if (tasks.length > 0) {
-      const taskSummary = tasks.map(t =>
-        `- ${t.name} (${t.status}): ${t.agentType} - ${t.message}`
-      ).join('\n');
-
-      yield {
-        position: "afterPriorMessages",
-        role: "user",
-        content: `/* The user has approved the following task plan */:\n${taskSummary}`
-      };
-    }
-  }
 }
