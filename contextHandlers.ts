@@ -1,6 +1,6 @@
 import {ContextHandler} from "@tokenring-ai/chat/types";
-import {default as taskContext} from "./contextHandlers/taskContext.ts";
+import {default as taskPlan} from "./contextHandlers/taskPlan.ts";
 
 export default {
-  'task-context': taskContext,
+  'task-plan': taskPlan,
 } as Record<string, ContextHandler>;

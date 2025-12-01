@@ -63,6 +63,8 @@ const inputSchema = z.object({
   })).describe("Array of tasks to add to the task list"),
 });
 
+const requiredContextHandlers = ["available-agents"];
+
 export default {
-  name, description, inputSchema, execute,
+  name, description, inputSchema, execute, requiredContextHandlers
 } as TokenRingToolDefinition<typeof inputSchema>;
