@@ -98,8 +98,8 @@ export default class TaskService implements TokenRingService {
             agentType: task.agentType,
             message: task.message,
             context: task.context,
-            forwardChatOutput: false,
-            forwardSystemOutput: false,
+            forwardChatOutput: true,
+            forwardSystemOutput: true,
             forwardHumanRequests: true, // Always forward human requests
             timeout: parentAgent.config.maxRunTime > 0 ? parentAgent.config.maxRunTime : undefined,
             maxResponseLength: 500,
