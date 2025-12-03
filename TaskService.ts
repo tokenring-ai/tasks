@@ -1,5 +1,7 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {runSubAgent} from "@tokenring-ai/agent/runSubAgent";
 import AgentManager from "@tokenring-ai/agent/services/AgentManager";
+import {AgentEventState} from "@tokenring-ai/agent/state/agentEventState";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
 import trimMiddle from "@tokenring-ai/utility/string/trimMiddle";
@@ -53,14 +55,14 @@ export default class TaskService implements TokenRingService {
     return [...(state.tasks ?? [])];
   }
 
-  getAutoApprove(agent: Agent): boolean {
+  getAutoApprove(agent: Agent): number {
     const state = agent.getState(TaskState);
-    return state.autoApprove ?? false;
+    return state.autoApprove ?? 0;
   }
 
-  setAutoApprove(autoApprove: boolean, agent: Agent): void {
+  setAutoApprove(seconds: number, agent: Agent): void {
     agent.mutateState(TaskState, (state: TaskState) => {
-      state.autoApprove = autoApprove;
+      state.autoApprove = Math.max(0, seconds);
     });
   }
 
@@ -69,91 +71,58 @@ export default class TaskService implements TokenRingService {
       state.parallelTasks = Math.max(1, parallelTasks);
     });
   }
-
   /**
    * Executes a list of tasks with configurable parallelism.
    * @param taskIds - IDs of the tasks to execute (preserves order).
-   * @param agent   - Current agent instance.
-   * @returns An array of human‑readable execution summaries.
+   * @param parentAgent   - Current parentAgent instance.
+   * @returns An array of human-readable execution summaries.
    */
-  async executeTasks(taskIds: string[], agent: Agent): Promise<string[]> {
-    const agentManager = agent.requireServiceByType(AgentManager);
-    const state = agent.getState(TaskState);
+  async executeTasks(
+    taskIds: string[],
+    parentAgent: Agent,
+  ): Promise<string[]> {
+    const state = parentAgent.getState(TaskState);
     const parallelTasks = state.parallelTasks || 1;
-    const tasks = this.getTasks(agent);
+    const tasks = this.getTasks(parentAgent);
     const taskMap = new Map(tasks.map(t => [t.id, t]));
 
     const executeTask = async (taskId: string): Promise<string> => {
       const task = taskMap.get(taskId);
       if (!task) return `✗ Task ${taskId}: Not found`;
 
-      this.updateTaskStatus(task.id, 'running', undefined, agent);
+      this.updateTaskStatus(task.id, 'running', undefined, parentAgent);
 
-      let newAgent: Agent | undefined;
       try {
-        let {agentType, message, context} = task;
-        // Create a new agent of the specified type
-        newAgent = await agentManager.spawnSubAgent(agent, agentType);
+        const result = await runSubAgent(
+          {
+            agentType: task.agentType,
+            message: task.message,
+            context: task.context,
+            forwardChatOutput: false,
+            forwardSystemOutput: false,
+            forwardHumanRequests: true, // Always forward human requests
+            timeout: parentAgent.config.maxRunTime > 0 ? parentAgent.config.maxRunTime : undefined,
+            maxResponseLength: 500,
+            minContextLength: 300,
+          },
+          parentAgent
+        );
 
-        let response = "";
-
-        agent.setBusy("Waiting for agent response...");
-
-        let inputSent = false;
-
-        // Promise to collect the response
-        for await (const event of newAgent.events(agent.getAbortSignal())) {
-          switch (event.type) {
-            case "output.chat":
-              response += event.data.content;
-              break;
-            case "output.system":
-              agent.systemMessage(event.data.message, event.data.level);
-              // Include system messages in the response for debugging
-              if (event.data.level === "error") {
-                response += `[System Error: ${event.data.message}]\n`;
-              }
-              break;
-            case "state.idle":
-              if (!inputSent) {
-                inputSent = true;
-
-                if (context) {
-                  message = `${message}\n\nImportant Context:\n${context}`;
-                }
-                //agent.infoLine("Sending message to agent:", message);
-                newAgent.handleInput({message: `/work ${message}`});
-              } else if (response) {
-                this.updateTaskStatus(task.id, 'completed', trimMiddle(response, 300, 500), agent);
-                return `✓ ${task.name}: Completed`;
-              } else {
-                throw new Error("No response received from agent");
-              }
-              break;
-            case "state.aborted":
-              throw new Error("Agent was terminated by user");
-            case "human.request":
-              // Forward human requests to the parent agent
-              const humanResponse = await agent.askHuman(event.data.request);
-              newAgent.sendHumanResponse(event.data.sequence, humanResponse);
-              break;
-          }
+        if (result.status === 'success' || result.status === 'error') {
+          this.updateTaskStatus(task.id, 'completed', result.response, parentAgent);
+          return `✓ ${task.name}: Completed`;
+        } else {
+          this.updateTaskStatus(task.id, 'failed', result.response, parentAgent);
+          return `✗ ${task.name}: Failed - ${result.response}`;
         }
-
-        throw new Error("Agent ended prematurely");
       } catch (error) {
         const errorString = formatLogMessages(["Error: ", error as any]);
-        this.updateTaskStatus(task.id, 'failed', errorString, agent);
+        this.updateTaskStatus(task.id, 'failed', errorString, parentAgent);
         return `✗ ${task.name}: Failed - ${errorString}`;
-      } finally {
-        // Clean up the agent
-        if (newAgent) await agentManager.deleteAgent(newAgent);
       }
     };
 
     // Execute tasks with controlled parallelism using async.mapLimit
     return await async.mapLimit(taskIds, parallelTasks, executeTask);
   }
-
-
 }

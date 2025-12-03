@@ -13,12 +13,12 @@ export interface Task {
 
 export class TaskState implements AgentStateSlice {
   name = "TaskState";
-  tasks: Task[] = [];
-  autoApprove: boolean = false;
-  parallelTasks: number = 1;
+  tasks: Task[];
+  autoApprove: number;
+  parallelTasks: number;
   persistToSubAgents = true;
 
-  constructor({tasks = [], autoApprove = false, parallelTasks = 1}: { tasks?: Task[], autoApprove?: boolean, parallelTasks?: number } = {}) {
+  constructor({tasks = [], autoApprove = 5, parallelTasks = 1}: { tasks?: Task[], autoApprove?: number, parallelTasks?: number } = {}) {
     this.tasks = [...tasks];
     this.autoApprove = autoApprove;
     this.parallelTasks = parallelTasks;
@@ -40,7 +40,7 @@ export class TaskState implements AgentStateSlice {
 
   deserialize(data: any): void {
     this.tasks = data.tasks ? [...data.tasks] : [];
-    this.autoApprove = data.autoApprove ?? false;
+    this.autoApprove = data.autoApprove ?? 0;
     this.parallelTasks = data.parallelTasks ?? 1;
   }
 
@@ -52,7 +52,7 @@ export class TaskState implements AgentStateSlice {
     return [
       `Total Tasks: ${this.tasks.length}`,
       ...Object.entries(statusCounts).map(([status, count]) => `  ${status}: ${count}`),
-      `Auto-approve: ${this.autoApprove}`,
+      `Auto-approve: ${this.autoApprove > 0 ? `${this.autoApprove}s` : 'disabled'}`,
       `Parallel tasks: ${this.parallelTasks}`
     ];
   }

@@ -19,29 +19,26 @@ async function execute(
   agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join('\n'));
 
   // Check auto-approve setting
-  const autoApprove = taskService.getAutoApprove(agent);
-  let approved = autoApprove;
+  const autoApproveTimeout = taskService.getAutoApprove(agent);
+  
+  // Present task plan to user
+  const taskPlan = tasks.map((task, i) =>
+    `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
+  ).join('\n\n');
 
-  if (autoApprove) {
-    agent.infoLine("Auto-approve enabled, executing task plan without user confirmation");
-  } else {
-    // Present task plan to user
-    const taskPlan = tasks.map((task, i) =>
-      `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
-    ).join('\n\n');
+  const approved = await agent.askHuman({
+    type: 'askForConfirmation',
+    message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`,
+    default: true,
+    timeout: autoApproveTimeout > 0 ? autoApproveTimeout : undefined
+  });
 
-    approved = await agent.askHuman({
-      type: 'askForConfirmation',
-      message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`
+  if (!approved) {
+    const reason = await agent.askHuman({
+      type: 'askForText',
+      message: 'Please explain why you are rejecting this task plan:'
     });
-
-    if (!approved) {
-      const reason = await agent.askHuman({
-        type: 'askForText',
-        message: 'Please explain why you are rejecting this task plan:'
-      });
-      return `Task plan rejected. Reason: ${reason}`;
-    }
+    return `Task plan rejected. Reason: ${reason}`;
   }
 
   // Add tasks and execute immediately
