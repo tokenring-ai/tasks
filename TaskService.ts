@@ -96,6 +96,7 @@ export default class TaskService implements TokenRingService {
         const result = await runSubAgent(
           {
             agentType: task.agentType,
+            headless: parentAgent.headless,
             message: task.message,
             context: task.context,
             forwardChatOutput: true,
