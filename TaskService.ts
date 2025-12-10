@@ -97,8 +97,7 @@ export default class TaskService implements TokenRingService {
           {
             agentType: task.agentType,
             headless: parentAgent.headless,
-            message: task.message,
-            context: task.context,
+            command: `/work ${task.message}\n\nImportant Context:\n${task.context}`,
             forwardChatOutput: true,
             forwardSystemOutput: true,
             forwardHumanRequests: true, // Always forward human requests
