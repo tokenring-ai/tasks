@@ -1,25 +1,24 @@
 {
- "name": "@tokenring-ai/tasks",
- "version": "0.2.0",
- "description": "Task management service for tokenring-ai",
- "dependencies": {
-  "@tokenring-ai/app": "0.2.0",
-  "@tokenring-ai/chat": "0.2.0",
-  "zod": "^4.1.13",
-  "@tokenring-ai/agent": "0.2.0",
-  "@tokenring-ai/utility": "0.2.0",
-  "uuid": "^13.0.0",
-  "async": "^3.2.6"
- },
- "devDependencies": {
-  "@types/async": "^3.2.25"
- },
- "exports": {
-  ".": "./index.ts",
-  "./*": "./*.ts"
- },
- "license": "MIT",
- "scripts": {
- },
- "type": "module"
+  "name": "@tokenring-ai/tasks",
+  "version": "0.2.0",
+  "description": "Task management service for tokenring-ai",
+  "dependencies": {
+    "@tokenring-ai/app": "0.2.0",
+    "@tokenring-ai/chat": "0.2.0",
+    "zod": "^4.1.13",
+    "@tokenring-ai/agent": "0.2.0",
+    "@tokenring-ai/utility": "0.2.0",
+    "uuid": "^13.0.0",
+    "async": "^3.2.6"
+  },
+  "devDependencies": {
+    "@types/async": "^3.2.25"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*.ts"
+  },
+  "license": "MIT",
+  "scripts": {},
+  "type": "module"
 }
