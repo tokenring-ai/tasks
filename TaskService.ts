@@ -1,10 +1,7 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {runSubAgent} from "@tokenring-ai/agent/runSubAgent";
-import AgentManager from "@tokenring-ai/agent/services/AgentManager";
-import {AgentEventState} from "@tokenring-ai/agent/state/agentEventState";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
-import trimMiddle from "@tokenring-ai/utility/string/trimMiddle";
 import async from "async";
 import {v4 as uuid} from 'uuid';
 import {Task, TaskState} from "./state/taskState.ts";
