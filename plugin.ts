@@ -24,4 +24,4 @@ export default {
     );
     app.addServices(new TaskService());
   },
-} as TokenRingPlugin;
+} satisfies TokenRingPlugin;
