@@ -105,7 +105,7 @@ export default class TaskService implements TokenRingService {
           parentAgent
         );
 
-        if (result.status === 'success' || result.status === 'error') {
+        if (result.status === 'success') {
           this.updateTaskStatus(task.id, 'completed', result.response, parentAgent);
           return `✓ ${task.name}: Completed`;
         } else {

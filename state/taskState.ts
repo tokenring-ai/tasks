@@ -1,3 +1,4 @@
+import {Agent} from "@tokenring-ai/agent";
 import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 import type {AgentStateSlice} from "@tokenring-ai/agent/types";
 
@@ -16,12 +17,15 @@ export class TaskState implements AgentStateSlice {
   tasks: Task[];
   autoApprove: number;
   parallelTasks: number;
-  persistToSubAgents = true;
 
   constructor({tasks = [], autoApprove = 5, parallelTasks = 1}: { tasks?: Task[], autoApprove?: number, parallelTasks?: number } = {}) {
     this.tasks = [...tasks];
     this.autoApprove = autoApprove;
     this.parallelTasks = parallelTasks;
+  }
+
+  transferStateFromParent(parent: Agent): void {
+    this.deserialize(parent.getState(TaskState).serialize());
   }
 
   reset(what: ResetWhat[]): void {
