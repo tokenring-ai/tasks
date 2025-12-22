@@ -49,7 +49,7 @@ export default class TaskService implements TokenRingService {
 
   getTasks(agent: Agent): Task[] {
     const state = agent.getState(TaskState);
-    return [...(state.tasks ?? [])];
+    return [...state.tasks];
   }
 
   getAutoApprove(agent: Agent): number {
