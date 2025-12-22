@@ -3,7 +3,7 @@ import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import TaskService from "../TaskService.ts";
 
-const name = "tasks/run";
+const name = "tasks_run";
 
 async function execute(
   {tasks}: z.infer<typeof inputSchema>,
