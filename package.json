@@ -12,13 +12,21 @@
     "async": "^3.2.6"
   },
   "devDependencies": {
-    "@types/async": "^3.2.25"
+    "vitest": "catalog:",
+    "typescript": "catalog:"
   },
   "exports": {
     ".": "./index.ts",
     "./*": "./*.ts"
   },
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "build": "tsc --noEmit",
+    "test:watch": "vitest"
+  },
   "type": "module"
 }
