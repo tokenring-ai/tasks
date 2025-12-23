@@ -43,6 +43,8 @@ export default class TaskService implements TokenRingService {
         if (result !== undefined) {
           task.result = result;
         }
+      } else {
+        throw new Error(`Task ${id} not found`);
       }
     });
   }
@@ -58,12 +60,18 @@ export default class TaskService implements TokenRingService {
   }
 
   setAutoApprove(seconds: number, agent: Agent): void {
+    if (seconds < 0) {
+      throw new Error(`Invalid autoApprove value: ${seconds}`);
+    }
     agent.mutateState(TaskState, (state: TaskState) => {
       state.autoApprove = Math.max(0, seconds);
     });
   }
 
   setParallelTasks(parallelTasks: number, agent: Agent): void {
+    if (parallelTasks < 1) {
+      throw new Error(`Invalid parallelTasks value: ${parallelTasks}`);
+    }
     agent.mutateState(TaskState, (state: TaskState) => {
       state.parallelTasks = Math.max(1, parallelTasks);
     });
