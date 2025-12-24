@@ -22,7 +22,7 @@ The `@tokenring-ai/tasks` package provides a complete task planning and executio
 This package is part of the TokenRing AI ecosystem. Install it as a dependency:
 
 ```bash
-npm install @tokenring-ai/tasks
+bun install @tokenring-ai/tasks
 ```
 
 ## Package Structure
@@ -115,7 +115,7 @@ The primary way to create and execute task plans with user approval:
 
 ```typescript
 // Create a comprehensive task plan
-await agent.executeTool('tasks/run', {
+await agent.executeTool('tasks_run', {
   tasks: [
     {
       taskName: "Create user authentication system",
@@ -189,11 +189,11 @@ const autoApproveTimeout = taskService.getAutoApprove(agent);
 
 ## Tool Reference
 
-### tasks/run
+### tasks_run
 
 Create and present a complete task plan to the user for approval. If approved, execute all tasks immediately with parallel processing.
 
-**Tool Name**: `tasks/run`
+**Tool Name**: `tasks_run`
 
 **Description**: "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection."
 
@@ -226,7 +226,7 @@ Manage task list with comprehensive subcommands:
 **Subcommands**:
 
 #### list
-Display all tasks in the current task queue with their status, agent type, and results.
+Display all tasks in the current task queue with their status, agent type, and message content.
 
 **Example**:
 ```
@@ -242,7 +242,6 @@ Current tasks:
 [1] Send Email (completed)
     Agent: email-sender
     Message: Send confirmation email to user@example.com
-    Result: Email sent successfully to user@example.com
 ```
 
 #### clear
@@ -298,6 +297,7 @@ Set the number of tasks that can run in parallel (default: 1).
 ### Service Methods
 
 #### `addTask(task, agent)`
+
 Add a single task to the task list.
 
 **Parameters**:
@@ -317,6 +317,7 @@ const taskId = taskService.addTask({
 ```
 
 #### `getTasks(agent)`
+
 Retrieve all tasks with their current status.
 
 **Parameters**:
@@ -331,6 +332,7 @@ console.log(`Found ${tasks.length} tasks`);
 ```
 
 #### `updateTaskStatus(id, status, result?, agent)`
+
 Update the status and optionally the result of a task.
 
 **Parameters**:
@@ -345,6 +347,7 @@ taskService.updateTaskStatus(taskId, 'completed', 'User account created successf
 ```
 
 #### `clearTasks(agent)`
+
 Remove all tasks from the task list.
 
 **Parameters**:
@@ -356,6 +359,7 @@ taskService.clearTasks(agent);
 ```
 
 #### `executeTasks(taskIds, parentAgent)`
+
 Execute a list of tasks with configured parallelism.
 
 **Parameters**:
@@ -371,6 +375,7 @@ console.log(results); // ['✓ Task 1: Completed', '✗ Task 2: Failed - Error m
 ```
 
 #### `getAutoApprove(agent)`
+
 Get the current auto-approve timeout setting.
 
 **Parameters**:
@@ -379,6 +384,7 @@ Get the current auto-approve timeout setting.
 **Returns**: `number` - Auto-approve timeout in seconds (0 = disabled)
 
 #### `setAutoApprove(seconds, agent)`
+
 Set the auto-approve timeout.
 
 **Parameters**:
@@ -391,6 +397,7 @@ taskService.setAutoApprove(45, agent); // Auto-approve after 45 seconds
 ```
 
 #### `setParallelTasks(parallelTasks, agent)`
+
 Set the maximum number of tasks to execute in parallel.
 
 **Parameters**:
@@ -500,7 +507,7 @@ The package integrates seamlessly with the TokenRing ecosystem:
 ### Development Workflows
 ```typescript
 // Feature development
-await agent.executeTool('tasks/run', {
+await agent.executeTool('tasks_run', {
   tasks: [
     {taskName: "Backend API", agentType: "backend-developer", message: "Create REST API endpoints", context: "..."},
     {taskName: "Frontend Components", agentType: "frontend-developer", message: "Build UI components", context: "..."},
@@ -529,7 +536,7 @@ await taskService.executeTasks(taskIds, agent);
 ### Content Creation
 ```typescript
 // Content production pipeline
-await agent.executeTool('tasks/run', {
+await agent.executeTool('tasks_run', {
   tasks: [
     {taskName: "Research", agentType: "researcher", message: "Gather information on topic", context: "..."},
     {taskName: "Writing", agentType: "writer", message: "Create draft content", context: "..."},
