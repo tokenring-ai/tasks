@@ -57,18 +57,18 @@ The main service that manages the complete task lifecycle:
 class TaskService implements TokenRingService {
   name = "TaskService";
   description = "Provides task management functionality";
-  
+
   // Task management
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string;
   getTasks(agent: Agent): Task[];
   updateTaskStatus(id: string, status: Task['status'], result: string | undefined, agent: Agent): void;
   clearTasks(agent: Agent): void;
-  
+
   // Configuration
   getAutoApprove(agent: Agent): number;
   setAutoApprove(seconds: number, agent: Agent): void;
   setParallelTasks(parallelTasks: number, agent: Agent): void;
-  
+
   // Task execution
   executeTasks(taskIds: string[], parentAgent: Agent): Promise<string[]>;
 }
@@ -99,11 +99,15 @@ class TaskState implements AgentStateSlice {
   tasks: Task[];                 // Array of all tasks
   autoApprove: number;           // Auto-approve timeout in seconds
   parallelTasks: number;         // Maximum parallel task execution
-  
+
   // State management methods
   serialize(): object;
   deserialize(data: any): void;
   show(): string[];
+
+  // Reset and transfer methods
+  transferStateFromParent(parent: Agent): void;
+  reset(what: ResetWhat[]): void;
 }
 ```
 
@@ -119,14 +123,14 @@ await agent.executeTool('tasks_run', {
   tasks: [
     {
       taskName: "Create user authentication system",
-      agentType: "backend-developer", 
+      agentType: "backend-developer",
       message: "Implement JWT-based authentication with login/logout endpoints",
       context: "Create auth middleware, user model, login/logout routes in Express.js. Use bcrypt for password hashing. Include proper error handling and validation. Set up appropriate HTTP status codes and response formats. Handle edge cases like expired tokens and concurrent requests."
     },
     {
       taskName: "Design login UI components",
       agentType: "frontend-developer",
-      message: "Create responsive login and registration forms", 
+      message: "Create responsive login and registration forms",
       context: "Build React components with form validation, error handling, and responsive design using Tailwind CSS. Include loading states, proper accessibility attributes, and consistent styling with the application's design system. Implement proper error messaging and success states."
     },
     {
@@ -196,6 +200,8 @@ Create and present a complete task plan to the user for approval. If approved, e
 **Tool Name**: `tasks_run`
 
 **Description**: "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection."
+
+**Required Context Handlers**: `["available-agents"]`
 
 **Input Schema**:
 ```typescript
@@ -278,7 +284,7 @@ Set the timeout in seconds before tasks are automatically approved. Set to 0 to 
 /tasks auto-approve 0
 ```
 
-**Output**: 
+**Output**:
 - `Auto-approve enabled with 30s timeout`
 - `Auto-approve disabled`
 
@@ -409,9 +415,40 @@ Set the maximum number of tasks to execute in parallel.
 taskService.setParallelTasks(3, agent); // Allow 3 parallel tasks
 ```
 
+### TaskState Methods
+
+#### `transferStateFromParent(parent)`
+
+Transfer task state from a parent agent instance.
+
+**Parameters**:
+- `parent`: `Agent` - Parent agent instance
+
+**Example**:
+```typescript
+taskState.transferStateFromParent(parentAgent);
+```
+
+#### `reset(what)`
+
+Reset task state based on specified criteria.
+
+**Parameters**:
+- `what`: `ResetWhat[]` - Array of reset criteria (e.g., `['chat']` to clear tasks on chat reset)
+
+**Behavior**:
+- When `['chat']` is specified, all tasks are cleared
+- Other reset criteria are passed through to other state handlers
+
+**Example**:
+```typescript
+taskState.reset(['chat']); // Clears all tasks
+```
+
 ### Context Handlers
 
 #### task-plan
+
 Provides current task summaries to agents as context.
 
 **Usage**: Automatically integrated when plugin is installed
@@ -442,16 +479,6 @@ Provides current task summaries to agents as context.
 - **Message**: One paragraph describing the task objective
 - **Context**: Three+ paragraphs with detailed execution instructions
 - **Requirement**: Must include file paths, technical specifications, and step-by-step instructions
-
-## Dependencies
-
-- `@tokenring-ai/agent@0.2.0`: Core agent framework and types
-- `@tokenring-ai/app@0.2.0`: Application framework and service management
-- `@tokenring-ai/chat@0.2.0`: Chat service and tool integration
-- `@tokenring-ai/utility@0.2.0`: Utility functions for formatting and utilities
-- `zod`: Schema validation for tool inputs
-- `uuid@^13.0.0`: UUID generation for unique task IDs
-- `async@^3.2.6`: Async utilities for parallel task execution
 
 ## Integration
 
@@ -560,4 +587,4 @@ await agent.executeTool('tasks_run', {
 
 ## License
 
-MIT License. Part of the TokenRing AI ecosystem.
+MIT License - see [LICENSE](./LICENSE) file for details.
