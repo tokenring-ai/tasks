@@ -10,7 +10,7 @@ export default class TaskService implements TokenRingService {
   name = "TaskService";
   description = "Provides task management functionality";
 
-  async attach(agent: Agent): Promise<void> {
+  attach(agent: Agent): void {
     agent.initializeState(TaskState, {});
   }
 
