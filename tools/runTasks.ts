@@ -1,25 +1,22 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
+import {TaskState} from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
 
 const name = "tasks_run";
 
 async function execute(
-  {tasks}: z.infer<typeof inputSchema>,
+  {tasks}: z.output<typeof inputSchema>,
   agent: Agent
 ): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
-
-  if (!tasks || tasks.length === 0) {
-    throw new Error(`[${name}] Missing task plan`);
-  }
 
   agent.chatOutput(`The following task plan has been generated:`)
   agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join('\n'));
 
   // Check auto-approve setting
-  const autoApproveTimeout = taskService.getAutoApprove(agent);
+  const autoApproveTimeout = agent.getState(TaskState).autoApprove;
   
   // Present task plan to user
   const taskPlan = tasks.map((task, i) =>

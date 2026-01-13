@@ -6,10 +6,13 @@ import {z} from "zod";
 import chatCommands from "./chatCommands.ts";
 import contextHandlers from "./contextHandlers.ts";
 import packageJSON from './package.json' with {type: 'json'};
+import {TaskServiceConfigSchema} from "./schema.ts";
 import TaskService from "./TaskService.js";
 import tools from "./tools.ts";
 
-const packageConfigSchema = z.object({});
+const packageConfigSchema = z.object({
+  tasks: TaskServiceConfigSchema
+});
 
 
 export default {
@@ -24,7 +27,7 @@ export default {
     app.waitForService(AgentCommandService, agentCommandService =>
       agentCommandService.addAgentCommands(chatCommands)
     );
-    app.addServices(new TaskService());
+    app.addServices(new TaskService(config.tasks));
   },
   config: packageConfigSchema
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

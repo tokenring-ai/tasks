@@ -1,17 +1,22 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {runSubAgent} from "@tokenring-ai/agent/runSubAgent";
 import {TokenRingService} from "@tokenring-ai/app/types";
+import deepMerge from "@tokenring-ai/utility/object/deepMerge";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
 import async from "async";
 import {v4 as uuid} from 'uuid';
+import {z} from "zod";
+import {TaskAgentConfigSchema, TaskServiceConfigSchema} from "./schema.ts";
 import {Task, TaskState} from "./state/taskState.ts";
 
 export default class TaskService implements TokenRingService {
   name = "TaskService";
   description = "Provides task management functionality";
 
+  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
   attach(agent: Agent): void {
-    agent.initializeState(TaskState, {});
+    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice('tasks', TaskAgentConfigSchema));
+    agent.initializeState(TaskState, config);
   }
 
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string {
@@ -31,7 +36,7 @@ export default class TaskService implements TokenRingService {
 
   clearTasks(agent: Agent): void {
     agent.mutateState(TaskState, (state: TaskState) => {
-      state.tasks = [];
+      state.tasks.splice(0, state.tasks.length);
     });
   }
 
@@ -54,28 +59,6 @@ export default class TaskService implements TokenRingService {
     return [...state.tasks];
   }
 
-  getAutoApprove(agent: Agent): number {
-    const state = agent.getState(TaskState);
-    return state.autoApprove ?? 0;
-  }
-
-  setAutoApprove(seconds: number, agent: Agent): void {
-    if (seconds < 0) {
-      throw new Error(`Invalid autoApprove value: ${seconds}`);
-    }
-    agent.mutateState(TaskState, (state: TaskState) => {
-      state.autoApprove = Math.max(0, seconds);
-    });
-  }
-
-  setParallelTasks(parallelTasks: number, agent: Agent): void {
-    if (parallelTasks < 1) {
-      throw new Error(`Invalid parallelTasks value: ${parallelTasks}`);
-    }
-    agent.mutateState(TaskState, (state: TaskState) => {
-      state.parallelTasks = Math.max(1, parallelTasks);
-    });
-  }
   /**
    * Executes a list of tasks with configurable parallelism.
    * @param taskIds - IDs of the tasks to execute (preserves order).
