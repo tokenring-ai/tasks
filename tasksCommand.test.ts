@@ -15,8 +15,8 @@ const createMockAgent = () => {
   const agent = createTestingAgent(app);
   vi.spyOn(agent, 'requireServiceByType');
   vi.spyOn(agent, 'chatOutput');
-  vi.spyOn(agent, 'infoLine');
-  vi.spyOn(agent, 'errorLine');
+  vi.spyOn(agent, 'infoMessage');
+  vi.spyOn(agent, 'errorMessage');
 
   return agent;
 };
@@ -69,7 +69,7 @@ describe('tasks Command', () => {
 
       tasksCommand.execute('list', mockAgent);
 
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('No tasks in the list');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('No tasks in the list');
     });
 
     it('should list all tasks when tasks exist', () => {
@@ -97,15 +97,15 @@ describe('tasks Command', () => {
 
       tasksCommand.execute('list', mockAgent);
 
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Current tasks:');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('[0] Process Data (pending)');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('    Agent: data-processor');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('    Message: Process the uploaded CSV file');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Current tasks:');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('[0] Process Data (pending)');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('    Agent: data-processor');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('    Message: Process the uploaded CSV file');
       
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('[1] Send Email (completed)');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('    Agent: email-sender');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('    Message: Send confirmation email');
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('    Result: Email sent successfully...');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('[1] Send Email (completed)');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('    Agent: email-sender');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('    Message: Send confirmation email');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('    Result: Email sent successfully...');
     });
 
     it('should truncate long results', () => {
@@ -125,7 +125,7 @@ describe('tasks Command', () => {
 
       tasksCommand.execute('list', mockAgent);
 
-      expect(mockAgent.infoLine).toHaveBeenCalledWith(
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith(
         '    Result: This is a very long result that should be truncated to show only the first 100 characters in the out...'
       );
     });
@@ -136,7 +136,7 @@ describe('tasks Command', () => {
       tasksCommand.execute('clear', mockAgent);
 
       expect(mockTaskService.clearTasks).toHaveBeenCalledWith(mockAgent);
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Cleared all tasks');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Cleared all tasks');
     });
   });
 
@@ -167,7 +167,7 @@ describe('tasks Command', () => {
       await tasksCommand.execute('execute', mockAgent);
 
       expect(mockTaskService.executeTasks).toHaveBeenCalledWith(['1'], mockAgent);
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Task execution completed:\n✓ Task 1: Completed');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Task execution completed:\n✓ Task 1: Completed');
     });
 
     it('should handle no pending tasks', () => {
@@ -186,7 +186,7 @@ describe('tasks Command', () => {
 
       tasksCommand.execute('execute', mockAgent);
 
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('No pending tasks to execute');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('No pending tasks to execute');
       expect(mockTaskService.executeTasks).not.toHaveBeenCalled();
     });
   });
@@ -196,34 +196,34 @@ describe('tasks Command', () => {
       tasksCommand.execute('auto-approve 30', mockAgent);
 
       expect(mockTaskService.setAutoApprove).toHaveBeenCalledWith(30, mockAgent);
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Auto-approve enabled with 30s timeout');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Auto-approve enabled with 30s timeout');
     });
 
     it('should disable auto-approve with zero', () => {
       tasksCommand.execute('auto-approve 0', mockAgent);
 
       expect(mockTaskService.setAutoApprove).toHaveBeenCalledWith(0, mockAgent);
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Auto-approve disabled');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Auto-approve disabled');
     });
 
     it('should handle invalid number', () => {
       tasksCommand.execute('auto-approve abc', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
       expect(mockTaskService.setAutoApprove).not.toHaveBeenCalled();
     });
 
     it('should handle negative number', () => {
       tasksCommand.execute('auto-approve -5', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
       expect(mockTaskService.setAutoApprove).not.toHaveBeenCalled();
     });
 
     it('should handle missing parameter', () => {
       tasksCommand.execute('auto-approve', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks auto-approve [seconds >= 0]');
       expect(mockTaskService.setAutoApprove).not.toHaveBeenCalled();
     });
   });
@@ -233,27 +233,27 @@ describe('tasks Command', () => {
       tasksCommand.execute('parallel 5', mockAgent);
 
       expect(mockTaskService.setParallelTasks).toHaveBeenCalledWith(5, mockAgent);
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('Parallel tasks set to 5');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('Parallel tasks set to 5');
     });
 
     it('should handle invalid number', () => {
       tasksCommand.execute('parallel abc', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
       expect(mockTaskService.setParallelTasks).not.toHaveBeenCalled();
     });
 
     it('should handle number less than 1', () => {
       tasksCommand.execute('parallel 0', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
       expect(mockTaskService.setParallelTasks).not.toHaveBeenCalled();
     });
 
     it('should handle missing parameter', () => {
       tasksCommand.execute('parallel', mockAgent);
 
-      expect(mockAgent.errorLine).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
+      expect(mockAgent.errorMessage).toHaveBeenCalledWith('Usage: /tasks parallel [number >= 1]');
       expect(mockTaskService.setParallelTasks).not.toHaveBeenCalled();
     });
   });
@@ -264,7 +264,7 @@ describe('tasks Command', () => {
 
       tasksCommand.execute('list', mockAgent);
 
-      expect(mockAgent.infoLine).toHaveBeenCalledWith('No tasks in the list');
+      expect(mockAgent.infoMessage).toHaveBeenCalledWith('No tasks in the list');
     });
 
     it('should handle commands with multiple spaces', () => {
