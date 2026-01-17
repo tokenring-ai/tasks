@@ -1,9 +1,9 @@
+import Agent from '@tokenring-ai/agent/Agent';
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import tasksCommand from './commands/tasks';
 import TaskService from './TaskService';
-import Agent from '@tokenring-ai/agent/Agent';
 
 // Mock dependencies
 vi.mock('./TaskService');

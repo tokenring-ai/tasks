@@ -1,10 +1,9 @@
+import Agent from '@tokenring-ai/agent/Agent';
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import context from "@tokenring-ai/chat/commands/chat/context";
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {TaskState} from './state/taskState';
 import TaskService from './TaskService';
-import { TaskState } from './state/taskState';
-import Agent from '@tokenring-ai/agent/Agent';
 
 const app = createTestingApp();
 

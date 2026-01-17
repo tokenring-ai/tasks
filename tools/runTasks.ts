@@ -23,17 +23,16 @@ async function execute(
     `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
   ).join('\n\n');
 
-  const approved = await agent.askHuman({
-    type: 'askForConfirmation',
+  const approved = await agent.askForConfirmation({
     message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`,
     default: true,
     timeout: autoApproveTimeout > 0 ? autoApproveTimeout : undefined
   });
 
   if (!approved) {
-    const reason = await agent.askHuman({
-      type: 'askForText',
-      message: 'Please explain why you are rejecting this task plan:'
+    const reason = await agent.askForText({
+      message: 'Please explain why you are rejecting this task plan:',
+      label: "Reason:"
     });
     return `Task plan rejected. Reason: ${reason}`;
   }

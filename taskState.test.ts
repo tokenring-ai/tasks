@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { TaskState, Task } from './state/taskState';
 import Agent from '@tokenring-ai/agent/Agent';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {Task, TaskState} from './state/taskState';
 
 describe('TaskState', () => {
   let taskState: TaskState;

@@ -1,8 +1,8 @@
 import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import createSubcommandRouter from "@tokenring-ai/agent/util/subcommandRouter";
-import list from "./tasks/list.js";
-import execute from "./tasks/execute.js";
 import clear from "./tasks/clear.js";
+import execute from "./tasks/execute.js";
+import list from "./tasks/list.js";
 import settings from "./tasks/settings.js";
 
 const description = "/tasks - Manage and execute tasks in the task queue";

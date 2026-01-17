@@ -1,11 +1,10 @@
+import Agent from '@tokenring-ai/agent/Agent';
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import runTasks from './tools/runTasks';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import TaskService from './TaskService';
-import Agent from '@tokenring-ai/agent/Agent';
-
+import runTasks from './tools/runTasks';
 
 describe('runTasks Tool', () => {
   let app: TokenRingApp;
@@ -54,7 +53,7 @@ describe('runTasks Tool', () => {
     ];
 
     it('should execute tasks successfully with user approval', async () => {
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
       vi.spyOn(taskService, 'executeTasks').mockResolvedValue(['✓ Process Data: Completed', '✓ Send Email: Completed']);
       vi.spyOn(agent, 'chatOutput');
       vi.spyOn(taskService, 'addTask');
@@ -65,7 +64,7 @@ describe('runTasks Tool', () => {
       expect(agent.chatOutput).toHaveBeenCalledWith(expect.stringContaining('Process Data'));
       expect(agent.chatOutput).toHaveBeenCalledWith(expect.stringContaining('Send Email'));
       
-      expect(agent.askHuman).toHaveBeenCalledWith({
+      expect(agent.askQuestion).toHaveBeenCalledWith({
         type: 'askForConfirmation',
         message: expect.stringContaining('Task Plan:'),
         default: true,
@@ -83,13 +82,13 @@ describe('runTasks Tool', () => {
     });
 
     it('should handle auto-approve timeout', async () => {
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
       agent.headless = false;
       vi.spyOn(taskService,'getAutoApprove').mockReturnValue(30);
 
       const result = await runTasks.execute({ tasks: validTasks }, agent);
 
-      expect(agent.askHuman).toHaveBeenCalledWith({
+      expect(agent.askQuestion).toHaveBeenCalledWith({
         type: 'askForConfirmation',
         message: expect.stringContaining('Task Plan:'),
         default: true,
@@ -98,8 +97,8 @@ describe('runTasks Tool', () => {
     });
 
     it('should handle user rejection', async () => {
-      vi.spyOn(agent, 'askHuman').mockResolvedValueOnce(false);
-      vi.spyOn(agent, 'askHuman').mockResolvedValueOnce("User rejected the plan");
+      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce(false);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce("User rejected the plan");
       agent.headless = false;
 
       const result = await runTasks.execute({ tasks: validTasks }, agent);
@@ -116,7 +115,7 @@ describe('runTasks Tool', () => {
     });
 
     it('should format task plan correctly', async () => {
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
       agent.headless = false;
       const singleTask = [
         {
@@ -129,7 +128,7 @@ describe('runTasks Tool', () => {
 
       await runTasks.execute({ tasks: singleTask }, agent);
 
-      expect(agent.askHuman).toHaveBeenCalledWith({
+      expect(agent.askQuestion).toHaveBeenCalledWith({
         type: 'askForConfirmation',
         message: expect.stringContaining('1. Test Task (test-agent)'),
         default: true,
@@ -139,7 +138,7 @@ describe('runTasks Tool', () => {
 
     it('should preserve task context information', async () => {
       vi.spyOn(taskService, 'addTask');
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
       agent.headless = false;
       const tasksWithContext = [
         {
@@ -183,7 +182,7 @@ describe('runTasks Tool', () => {
       ];
 
       vi.spyOn(taskService, 'addTask');
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
       agent.headless = false;
 
       await runTasks.execute({ tasks: mixedTasks }, agent);
@@ -222,7 +221,7 @@ describe('runTasks Tool', () => {
 
       vi.spyOn(agent, 'chatOutput');
       agent.headless = false;
-      vi.spyOn(agent, 'askHuman').mockResolvedValue(true);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValue(true);
 
       await runTasks.execute({ tasks }, agent);
 
@@ -231,8 +230,8 @@ describe('runTasks Tool', () => {
     });
 
     it('should handle human input for rejection reason', async () => {
-      vi.spyOn(agent, 'askHuman').mockResolvedValueOnce(false);
-      vi.spyOn(agent, 'askHuman').mockResolvedValueOnce('The plan is not clear enough');
+      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce(false);
+      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce('The plan is not clear enough');
       agent.headless = false;
 
 
@@ -244,7 +243,7 @@ describe('runTasks Tool', () => {
         }
       ] }, agent);
 
-      expect(agent.askHuman).toHaveBeenCalledWith({
+      expect(agent.askQuestion).toHaveBeenCalledWith({
         type: 'askForText',
         message: 'Please explain why you are rejecting this task plan:',
       });
