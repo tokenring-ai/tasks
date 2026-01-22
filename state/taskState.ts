@@ -14,8 +14,23 @@ export interface Task {
   result?: string;
 }
 
-export class TaskState implements AgentStateSlice {
+const serializationSchema = z.object({
+  tasks: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    agentType: z.string(),
+    message: z.string(),
+    context: z.string(),
+    status: z.enum(['pending', 'running', 'completed', 'failed']),
+    result: z.string().optional()
+  })),
+  autoApprove: z.number(),
+  parallelTasks: z.number()
+});
+
+export class TaskState implements AgentStateSlice<typeof serializationSchema> {
   name = "TaskState";
+  serializationSchema = serializationSchema;
   readonly tasks: Task[] = [];
   autoApprove: number;
   parallelTasks: number;
@@ -40,7 +55,7 @@ export class TaskState implements AgentStateSlice {
     }
   }
 
-  serialize(): object {
+  serialize(): z.output<typeof serializationSchema> {
     return {
       tasks: this.tasks,
       autoApprove: this.autoApprove,
@@ -48,9 +63,9 @@ export class TaskState implements AgentStateSlice {
     };
   }
 
-  deserialize(data: any): void {
+  deserialize(data: z.output<typeof serializationSchema>): void {
     if (data.tasks) {
-      this.tasks.splice(0, data.task.length - 1, ...data.tasks);
+      this.tasks.splice(0, data.tasks.length, ...data.tasks);
     }
 
     this.autoApprove = data.autoApprove ?? 0;
