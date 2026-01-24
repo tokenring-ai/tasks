@@ -5,6 +5,7 @@ import {TaskState} from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
 
 const name = "tasks_run";
+const displayName = "Tasks/runTasks";
 
 async function execute(
   {tasks}: z.output<typeof inputSchema>,
@@ -70,5 +71,5 @@ const inputSchema = z.object({
 const requiredContextHandlers = ["available-agents"];
 
 export default {
-  name, description, inputSchema, execute, requiredContextHandlers
+  name, displayName, description, inputSchema, execute, requiredContextHandlers
 } satisfies TokenRingToolDefinition<typeof inputSchema>;
