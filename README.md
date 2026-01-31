@@ -43,6 +43,7 @@ pkg/tasks/
 ├── contextHandlers/
 │   └── taskPlan.ts             # Task plan context handler
 ├── plugin.ts                   # Plugin configuration
+├── schema.ts                   # Configuration schemas
 ├── package.json                # Package metadata and dependencies
 └── README.md                   # This documentation
 ```
@@ -58,18 +59,17 @@ class TaskService implements TokenRingService {
   name = "TaskService";
   description = "Provides task management functionality";
 
-  // Task management
+  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
+
+  attach(agent: Agent): void {
+    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice('tasks', TaskAgentConfigSchema));
+    agent.initializeState(TaskState, config);
+  }
+
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string;
   getTasks(agent: Agent): Task[];
   updateTaskStatus(id: string, status: Task['status'], result: string | undefined, agent: Agent): void;
   clearTasks(agent: Agent): void;
-
-  // Configuration
-  getAutoApprove(agent: Agent): number;
-  setAutoApprove(seconds: number, agent: Agent): void;
-  setParallelTasks(parallelTasks: number, agent: Agent): void;
-
-  // Task execution
   executeTasks(taskIds: string[], parentAgent: Agent): Promise<string[]>;
 }
 ```
@@ -96,20 +96,61 @@ State management for persistence and serialization:
 
 ```typescript
 class TaskState implements AgentStateSlice {
-  tasks: Task[];                 // Array of all tasks
+  name = "TaskState";
+  serializationSchema = serializationSchema;
+  readonly tasks: Task[] = [];
   autoApprove: number;           // Auto-approve timeout in seconds
   parallelTasks: number;         // Maximum parallel task execution
 
-  // State management methods
-  serialize(): object;
-  deserialize(data: any): void;
-  show(): string[];
+  constructor(readonly initialConfig: z.output<typeof TaskServiceConfigSchema>["agentDefaults"]) {
+    this.autoApprove = initialConfig.autoApprove;
+    this.parallelTasks = initialConfig.parallel;
+  }
 
-  // Reset and transfer methods
-  transferStateFromParent(parent: Agent): void;
+  transferStateFromParent(agent: Agent): void;
   reset(what: ResetWhat[]): void;
+  serialize(): z.output<typeof serializationSchema>;
+  deserialize(data: z.output<typeof serializationSchema>): void;
+  show(): string[];
 }
 ```
+
+## Configuration
+
+### Plugin Configuration
+
+The plugin can be configured with default settings for all agents:
+
+```typescript
+{
+  tasks: {
+    agentDefaults: {
+      autoApprove: 0,      // Auto-approve timeout in seconds (0 = disabled)
+      parallel: 1          // Maximum parallel tasks (minimum: 1)
+    }
+  }
+}
+```
+
+### Auto-Approve
+
+- **Purpose**: Automatically approve task plans after a timeout
+- **Range**: 0 (disabled) to any positive integer (seconds)
+- **Default**: 0 (disabled)
+- **Usage**: Set via `/tasks settings auto-approve=<seconds>` or `agent.getState(TaskState).autoApprove`
+
+### Parallel Tasks
+
+- **Purpose**: Control concurrent task execution
+- **Range**: 1 to any positive integer
+- **Default**: 1 (sequential execution)
+- **Usage**: Set via `/tasks settings parallel=<count>` or `agent.getState(TaskState).parallelTasks`
+
+### Task Context
+
+- **Message**: One paragraph describing the task objective
+- **Context**: Three+ paragraphs with detailed execution instructions
+- **Requirement**: Must include file paths, technical specifications, and step-by-step instructions
 
 ## Usage Examples
 
@@ -172,14 +213,18 @@ const results = await taskService.executeTasks([taskId], agent);
 
 ```typescript
 // Configure auto-approve timeout (seconds)
-taskService.setAutoApprove(30, agent); // 30 second auto-approve
-taskService.setAutoApprove(0, agent);  // Disable auto-approve
+agent.mutateState(TaskState, state => {
+  state.autoApprove = 30;
+});
 
 // Configure parallel task execution
-taskService.setParallelTasks(3, agent); // Allow 3 tasks to run simultaneously
+agent.mutateState(TaskState, state => {
+  state.parallelTasks = 3;
+});
 
 // Get current configuration
-const autoApproveTimeout = taskService.getAutoApprove(agent);
+const autoApproveTimeout = agent.getState(TaskState).autoApprove;
+const parallelLimit = agent.getState(TaskState).parallelTasks;
 ```
 
 ## Task Planning Workflow
@@ -227,7 +272,7 @@ Create and present a complete task plan to the user for approval. If approved, e
 
 Manage task list with comprehensive subcommands:
 
-**Description**: "/tasks - Manage and execute tasks in the task queue."
+**Description**: `/tasks - Manage and execute tasks in the task queue.`
 
 **Subcommands**:
 
@@ -275,28 +320,25 @@ Task execution completed:
 ✗ Send Email: Failed - SMTP connection failed
 ```
 
-#### auto-approve
-Set the timeout in seconds before tasks are automatically approved. Set to 0 to disable auto-approval.
+#### settings
+View or modify task settings. Settings are stored in the agent state and apply to the current agent.
 
-**Example**:
+**Examples**:
 ```
-/tasks auto-approve 30
-/tasks auto-approve 0
+/tasks settings
+/tasks settings auto-approve=30
+/tasks settings parallel=3
 ```
 
 **Output**:
-- `Auto-approve enabled with 30s timeout`
-- `Auto-approve disabled`
-
-#### parallel
-Set the number of tasks that can run in parallel (default: 1).
-
-**Example**:
 ```
-/tasks parallel 3
-```
+Task Settings:
+  Auto-approve: 30s
+  Parallel tasks: 3
 
-**Output**: `Parallel tasks set to 3`
+Usage:
+  /tasks settings auto-approve=<seconds> parallel=<number>
+```
 
 ## API Reference
 
@@ -380,41 +422,6 @@ const results = await taskService.executeTasks([taskId1, taskId2], agent);
 console.log(results); // ['✓ Task 1: Completed', '✗ Task 2: Failed - Error message']
 ```
 
-#### `getAutoApprove(agent)`
-
-Get the current auto-approve timeout setting.
-
-**Parameters**:
-- `agent`: `Agent` - Current agent instance
-
-**Returns**: `number` - Auto-approve timeout in seconds (0 = disabled)
-
-#### `setAutoApprove(seconds, agent)`
-
-Set the auto-approve timeout.
-
-**Parameters**:
-- `seconds`: `number` - Timeout in seconds (0 = disabled)
-- `agent`: `Agent` - Current agent instance
-
-**Example**:
-```typescript
-taskService.setAutoApprove(45, agent); // Auto-approve after 45 seconds
-```
-
-#### `setParallelTasks(parallelTasks, agent)`
-
-Set the maximum number of tasks to execute in parallel.
-
-**Parameters**:
-- `parallelTasks`: `number` - Maximum parallel tasks (minimum: 1)
-- `agent`: `Agent` - Current agent instance
-
-**Example**:
-```typescript
-taskService.setParallelTasks(3, agent); // Allow 3 parallel tasks
-```
-
 ### TaskState Methods
 
 #### `transferStateFromParent(parent)`
@@ -445,6 +452,46 @@ Reset task state based on specified criteria.
 taskState.reset(['chat']); // Clears all tasks
 ```
 
+#### `show()`
+
+Get human-readable state summary.
+
+**Returns**: `string[]` - Array of state information lines
+
+**Example**:
+```typescript
+const output = taskState.show();
+// Output: ['Total Tasks: 5', '  pending: 2', '  running: 1', '  completed: 1', '  failed: 1', 'Auto-approve: 30s', 'Parallel tasks: 3']
+```
+
+### Configuration Management
+
+Configuration is managed directly through agent state, not through TaskService methods:
+
+#### Setting Auto-Approve
+
+```typescript
+agent.mutateState(TaskState, state => {
+  state.autoApprove = 45; // Enable auto-approve after 45 seconds
+  // state.autoApprove = 0; // Disable auto-approve
+});
+```
+
+#### Setting Parallel Tasks
+
+```typescript
+agent.mutateState(TaskState, state => {
+  state.parallelTasks = 3; // Allow 3 parallel tasks
+});
+```
+
+#### Getting Configuration
+
+```typescript
+const autoApproveTimeout = agent.getState(TaskState).autoApprove;
+const parallelLimit = agent.getState(TaskState).parallelTasks;
+```
+
 ### Context Handlers
 
 #### task-plan
@@ -460,25 +507,6 @@ Provides current task summaries to agents as context.
 - Create user authentication (pending): backend-developer - Implement JWT-based authentication
 - Design login UI (pending): frontend-developer - Create responsive login forms
 ```
-
-## Configuration
-
-### Auto-Approve
-- **Purpose**: Automatically approve task plans after a timeout
-- **Range**: 0 (disabled) to any positive integer (seconds)
-- **Default**: 5 seconds
-- **Usage**: Set via `/tasks auto-approve [seconds]` or `setAutoApprove(seconds, agent)`
-
-### Parallel Tasks
-- **Purpose**: Control concurrent task execution
-- **Range**: 1 to any positive integer
-- **Default**: 1 (sequential execution)
-- **Usage**: Set via `/tasks parallel [count]` or `setParallelTasks(count, agent)`
-
-### Task Context
-- **Message**: One paragraph describing the task objective
-- **Context**: Three+ paragraphs with detailed execution instructions
-- **Requirement**: Must include file paths, technical specifications, and step-by-step instructions
 
 ## Integration
 
