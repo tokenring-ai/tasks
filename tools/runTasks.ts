@@ -24,7 +24,7 @@ async function execute(
     `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`
   ).join('\n\n');
 
-  const approved = await agent.askForConfirmation({
+  const approved = await agent.askForApproval({
     message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`,
     default: true,
     timeout: autoApproveTimeout > 0 ? autoApproveTimeout : undefined

@@ -10,7 +10,7 @@ import {TaskAgentConfigSchema, TaskServiceConfigSchema} from "./schema.ts";
 import {Task, TaskState} from "./state/taskState.ts";
 
 export default class TaskService implements TokenRingService {
-  name = "TaskService";
+  readonly name = "TaskService";
   description = "Provides task management functionality";
 
   constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}

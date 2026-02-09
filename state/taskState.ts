@@ -29,7 +29,7 @@ const serializationSchema = z.object({
 });
 
 export class TaskState implements AgentStateSlice<typeof serializationSchema> {
-  name = "TaskState";
+  readonly name = "TaskState";
   serializationSchema = serializationSchema;
   readonly tasks: Task[] = [];
   autoApprove: number;
