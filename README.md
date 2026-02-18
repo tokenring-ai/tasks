@@ -98,7 +98,7 @@ State management for persistence and serialization:
 class TaskState implements AgentStateSlice {
   name = "TaskState";
   serializationSchema = serializationSchema;
-  readonly tasks: Task[] = [];
+  tasks: Task[] = [];
   autoApprove: number;           // Auto-approve timeout in seconds
   parallelTasks: number;         // Maximum parallel task execution
 
