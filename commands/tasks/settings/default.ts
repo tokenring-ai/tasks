@@ -1,9 +1,10 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
 import indent from "@tokenring-ai/utility/string/indent";
 import {TaskState} from "../../../state/taskState.ts";
 import TaskService from "../../../TaskService.js";
 
-export default async function defaultCmd(remainder: string, agent: Agent): Promise<void> {
+export default async function defaultCmd(remainder: string, agent: Agent): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
 
   const { parallelTasks, autoApprove, tasks } = agent.getState(TaskState);
@@ -19,17 +20,16 @@ export default async function defaultCmd(remainder: string, agent: Agent): Promi
       "Usage:",
       indent("/tasks settings auto-approve=<seconds> parallel=<number>", 1)
     ];
-    agent.infoMessage(lines.join("\n"));
-    return;
+    return lines.join("\n");
   }
 
   const settings = remainder.trim().split(/\s+/);
+  const results: string[] = [];
   
   for (const setting of settings) {
     const match = setting.match(/^(auto-approve|parallel)=(.+)$/);
     if (!match) {
-      agent.errorMessage(`Invalid setting: ${setting}`);
-      continue;
+      throw new CommandFailedError(`Invalid setting: ${setting}`);
     }
 
     const [, key, value] = match;
@@ -37,23 +37,25 @@ export default async function defaultCmd(remainder: string, agent: Agent): Promi
     if (key === "auto-approve") {
       const seconds = parseInt(value, 10);
       if (isNaN(seconds) || seconds < 0) {
-        agent.errorMessage("auto-approve must be >= 0");
+        throw new CommandFailedError("auto-approve must be >= 0");
       } else {
         agent.mutateState(TaskState, state => {
           state.autoApprove = seconds;
         });
-        agent.infoMessage(seconds > 0 ? `Auto-approve enabled with ${seconds}s timeout` : "Auto-approve disabled");
+        results.push(seconds > 0 ? `Auto-approve enabled with ${seconds}s timeout` : "Auto-approve disabled");
       }
     } else if (key === "parallel") {
       const count = parseInt(value, 10);
       if (isNaN(count) || count < 1) {
-        agent.errorMessage("parallel must be >= 1");
+        throw new CommandFailedError("parallel must be >= 1");
       } else {
         agent.mutateState(TaskState, state => {
           state.parallelTasks = count;
         });
-        agent.infoMessage(`Parallel tasks set to ${count}`);
+        results.push(`Parallel tasks set to ${count}`);
       }
     }
   }
+
+  return results.join("\n");
 }

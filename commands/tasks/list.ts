@@ -2,13 +2,12 @@ import Agent from "@tokenring-ai/agent/Agent";
 import indent from "@tokenring-ai/utility/string/indent";
 import TaskService from "../../TaskService.js";
 
-export default async function list(_remainder: string, agent: Agent): Promise<void> {
+export default async function list(_remainder: string, agent: Agent): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
   const tasks = taskService.getTasks(agent);
   
   if (tasks.length === 0) {
-    agent.infoMessage("No tasks in the list");
-    return;
+    return "No tasks in the list";
   }
 
   const lines: string[] = ["Current tasks:"];
@@ -22,5 +21,5 @@ export default async function list(_remainder: string, agent: Agent): Promise<vo
       lines.push(indent(`Result: ${task.result.substring(0, 100)}...`, 2));
     }
   });
-  agent.infoMessage(lines.join("\n"));
+  return lines.join("\n");
 }
