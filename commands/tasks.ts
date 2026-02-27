@@ -56,6 +56,7 @@ View or modify task settings.
 - Run multiple tasks: \`/tasks settings parallel=5\``;
 
 export default {
+  name: "tasks",
   description,
   execute: executeCmd,
   help,
