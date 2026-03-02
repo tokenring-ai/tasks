@@ -36,8 +36,12 @@ pkg/tasks/
 ├── tools/
 │   └── runTasks.ts             # Task planning and execution tool
 ├── commands/
-│   └── tasks.ts                # Chat commands for task management
-├── chatCommands.ts             # Command exports
+│   └── tasks/
+│       ├── list.ts             # List all tasks command
+│       ├── execute.ts          # Execute pending tasks command
+│       ├── clear.ts            # Clear all tasks command
+│       └── settings.ts         # View/modify task settings command
+├── commands.ts                 # Command exports
 ├── tools.ts                    # Tool exports
 ├── contextHandlers.ts          # Context handler exports
 ├── contextHandlers/
@@ -56,7 +60,7 @@ The main service that manages the complete task lifecycle:
 
 ```typescript
 class TaskService implements TokenRingService {
-  name = "TaskService";
+  readonly name = "TaskService";
   description = "Provides task management functionality";
 
   constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
@@ -96,9 +100,9 @@ State management for persistence and serialization:
 
 ```typescript
 class TaskState implements AgentStateSlice {
-  name = "TaskState";
+  readonly name = "TaskState";
   serializationSchema = serializationSchema;
-  tasks: Task[] = [];
+  readonly tasks: Task[] = [];
   autoApprove: number;           // Auto-approve timeout in seconds
   parallelTasks: number;         // Maximum parallel task execution
 
@@ -244,6 +248,8 @@ Create and present a complete task plan to the user for approval. If approved, e
 
 **Tool Name**: `tasks_run`
 
+**Display Name**: `Tasks/runTasks`
+
 **Description**: "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection."
 
 **Required Context Handlers**: `["available-agents"]`
@@ -277,6 +283,7 @@ Manage task list with comprehensive subcommands:
 **Subcommands**:
 
 #### list
+
 Display all tasks in the current task queue with their status, agent type, and message content.
 
 **Example**:
@@ -288,14 +295,16 @@ Display all tasks in the current task queue with their status, agent type, and m
 ```
 Current tasks:
 [0] Process Data (pending)
-    Agent: data-processor
-    Message: Process the uploaded CSV file
+  Agent: data-processor
+  Message: Process the uploaded CSV file
 [1] Send Email (completed)
-    Agent: email-sender
-    Message: Send confirmation email to user@example.com
+  Agent: email-sender
+  Message: Send confirmation email to user@example.com
+  Result: Email sent successfully...
 ```
 
 #### clear
+
 Remove all tasks from the current task queue. This action cannot be undone.
 
 **Example**:
@@ -306,6 +315,7 @@ Remove all tasks from the current task queue. This action cannot be undone.
 **Output**: `Cleared all tasks`
 
 #### execute
+
 Execute all pending tasks by dispatching them to their respective agents. Only tasks with 'pending' status will be executed.
 
 **Example**:
@@ -321,6 +331,7 @@ Task execution completed:
 ```
 
 #### settings
+
 View or modify task settings. Settings are stored in the agent state and apply to the current agent.
 
 **Examples**:
@@ -333,11 +344,11 @@ View or modify task settings. Settings are stored in the agent state and apply t
 **Output**:
 ```
 Task Settings:
-  Auto-approve: 30s
-  Parallel tasks: 3
+ Auto-approve: 30s
+ Parallel tasks: 3
 
 Usage:
-  /tasks settings auto-approve=<seconds> parallel=<number>
+ /tasks settings auto-approve=<seconds> parallel=<number>
 ```
 
 ## API Reference
@@ -431,6 +442,8 @@ Transfer task state from a parent agent instance.
 **Parameters**:
 - `parent`: `Agent` - Parent agent instance
 
+**Note**: The tasks array is shared with the parent agent. This is a temporary implementation and should be revisited for better state isolation.
+
 **Example**:
 ```typescript
 taskState.transferStateFromParent(parentAgent);
@@ -452,6 +465,30 @@ Reset task state based on specified criteria.
 taskState.reset(['chat']); // Clears all tasks
 ```
 
+#### `serialize()`
+
+Serialize task state for persistence.
+
+**Returns**: `z.output<typeof serializationSchema>` - Serialized state object
+
+**Example**:
+```typescript
+const serialized = taskState.serialize();
+// { tasks: [...], autoApprove: 30, parallelTasks: 3 }
+```
+
+#### `deserialize(data)`
+
+Deserialize task state from persisted data.
+
+**Parameters**:
+- `data`: `z.output<typeof serializationSchema>` - Serialized state data
+
+**Example**:
+```typescript
+taskState.deserialize({ tasks: [], autoApprove: 0, parallelTasks: 1 });
+```
+
 #### `show()`
 
 Get human-readable state summary.
@@ -461,7 +498,15 @@ Get human-readable state summary.
 **Example**:
 ```typescript
 const output = taskState.show();
-// Output: ['Total Tasks: 5', '  pending: 2', '  running: 1', '  completed: 1', '  failed: 1', 'Auto-approve: 30s', 'Parallel tasks: 3']
+// Output: [
+//   'Total Tasks: 5',
+//   '  pending: 2',
+//   '  running: 1',
+//   '  completed: 1',
+//   '  failed: 1',
+//   'Auto-approve: 30s',
+//   'Parallel tasks: 3'
+// ]
 ```
 
 ### Configuration Management
@@ -498,14 +543,16 @@ const parallelLimit = agent.getState(TaskState).parallelTasks;
 
 Provides current task summaries to agents as context.
 
+**Handler Name**: `task-plan`
+
 **Usage**: Automatically integrated when plugin is installed
 
-**Example**:
-```typescript
-// Agent receives context like:
+**Example Output**:
+```
 /* The user has approved the following task plan */:
 - Create user authentication (pending): backend-developer - Implement JWT-based authentication
 - Design login UI (pending): frontend-developer - Create responsive login forms
+- Write tests (completed): test-engineer - Create comprehensive test suite
 ```
 
 ## Integration
@@ -513,6 +560,7 @@ Provides current task summaries to agents as context.
 The package integrates seamlessly with the TokenRing ecosystem:
 
 ### Plugin System
+
 - **Automatic Registration**: Plugin automatically registers services and tools
 - **Service Dependencies**: Waits for ChatService and AgentCommandService
 - **Tool Registration**: Adds tools to ChatService for agent use
@@ -520,16 +568,19 @@ The package integrates seamlessly with the TokenRing ecosystem:
 - **Context Handler Registration**: Registers task plan context handlers
 
 ### Service Integration
+
 - **State Management**: Integrates with Agent state system via TaskState
 - **Service Injection**: Available via `agent.requireServiceByType(TaskService)`
 - **Lifecycle**: Attaches to agents during initialization
 
 ### Tool Integration
+
 - **Tool Discovery**: Tools automatically available to agents via ChatService
 - **Schema Validation**: Zod-based input validation for all tool parameters
 - **Error Handling**: Comprehensive error handling and user feedback
 
 ### Command Integration
+
 - **Slash Commands**: All commands use `/tasks` prefix
 - **Parameter Parsing**: Robust parameter parsing and validation
 - **Help Integration**: Built-in help system with detailed documentation
@@ -537,22 +588,26 @@ The package integrates seamlessly with the TokenRing ecosystem:
 ## Best Practices
 
 ### Task Planning
+
 - **Comprehensive Context**: Provide detailed context with step-by-step instructions
 - **Clear Agent Assignment**: Use appropriate agent types for each task
 - **Dependency Management**: Order tasks to handle dependencies properly
 - **Context Detail**: Include file paths, technical requirements, and edge cases
 
 ### Configuration
+
 - **Auto-Approve**: Use for routine or well-tested task plans
 - **Parallel Execution**: Use for independent tasks to improve efficiency
 - **Timeout Management**: Set reasonable timeouts based on task complexity
 
 ### Error Handling
+
 - **Retry Logic**: Implement retry logic for failed tasks
 - **Error Context**: Provide detailed error context in task results
 - **Graceful Degradation**: Handle partial task execution failures
 
 ### Performance
+
 - **Parallel Limits**: Don't exceed reasonable parallel task limits
 - **Memory Management**: Clear completed tasks periodically
 - **State Persistence**: Be mindful of state size with many tasks
@@ -560,6 +615,7 @@ The package integrates seamlessly with the TokenRing ecosystem:
 ## Common Use Cases
 
 ### Development Workflows
+
 ```typescript
 // Feature development
 await agent.executeTool('tasks_run', {
@@ -572,6 +628,7 @@ await agent.executeTool('tasks_run', {
 ```
 
 ### Data Processing
+
 ```typescript
 // Batch data processing
 const taskIds = [];
@@ -589,6 +646,7 @@ await taskService.executeTasks(taskIds, agent);
 ```
 
 ### Content Creation
+
 ```typescript
 // Content production pipeline
 await agent.executeTool('tasks_run', {
@@ -603,15 +661,72 @@ await agent.executeTool('tasks_run', {
 ## Error Handling
 
 ### Task Execution Errors
+
 - **Network Issues**: Tasks fail gracefully with error messages
 - **Agent Unavailable**: Proper error handling for missing agent types
 - **Timeout**: Configurable timeouts for task execution
 - **Partial Failures**: Individual task failures don't stop other tasks
 
 ### Recovery Strategies
+
 - **Retry Failed Tasks**: Use `/tasks execute` to retry failed tasks
 - **Clear and Restart**: Use `/tasks clear` to reset and start fresh
 - **Status Inspection**: Use `/tasks list` to identify specific failures
+
+## Testing
+
+The package uses vitest for unit testing. Run tests with:
+
+```bash
+bun test
+```
+
+Or with watch mode:
+
+```bash
+bun test:watch
+```
+
+### Test Files
+
+- `runTasks.test.ts` - Tests for the runTasks tool
+- `tasksCommand.test.ts` - Tests for task commands
+
+## Dependencies
+
+- `@tokenring-ai/app` - Base application framework
+- `@tokenring-ai/chat` - Chat service and tool definitions
+- `@tokenring-ai/agent` - Agent orchestration and sub-agent execution
+- `@tokenring-ai/utility` - Shared utilities and helpers
+- `zod` - Schema validation
+- `uuid` - Unique ID generation
+- `async` - Parallel task execution
+
+## Development
+
+### Build
+
+```bash
+bun run build
+```
+
+### Test
+
+```bash
+bun run test
+```
+
+### Test Coverage
+
+```bash
+bun run test:coverage
+```
+
+### Test UI
+
+```bash
+bun run test:ui
+```
 
 ## License
 

@@ -1,17 +1,19 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import TaskService from "../../TaskService.js";
 
-export default async function execute(_remainder: string, agent: Agent): Promise<string> {
+async function execute(_remainder: string, agent: Agent): Promise<string> {
   const taskService = agent.requireServiceByType(TaskService);
-  const tasks = taskService.getTasks(agent);
-  const pendingTasks = tasks.filter(t => t.status === 'pending');
-
-  if (pendingTasks.length === 0) {
-    return "No pending tasks to execute";
-  }
-
-  const taskIds = pendingTasks.map(t => t.id);
-  const results = await taskService.executeTasks(taskIds, agent);
-
+  const pending = taskService.getTasks(agent).filter(t => t.status === 'pending');
+  if (pending.length === 0) return "No pending tasks to execute";
+  const results = await taskService.executeTasks(pending.map(t => t.id), agent);
   return `Task execution completed:\n${results.join('\n')}`;
 }
+
+export default { name: "tasks execute", description: "/tasks execute - Execute pending tasks", help: `# /tasks execute
+
+Execute all pending tasks in the task queue.
+
+## Example
+
+/tasks execute`, execute } satisfies TokenRingAgentCommand;
