@@ -112,7 +112,7 @@ class TaskState implements AgentStateSlice {
   }
 
   transferStateFromParent(agent: Agent): void;
-  reset(what: ResetWhat[]): void;
+  reset(): void;
   serialize(): z.output<typeof serializationSchema>;
   deserialize(data: z.output<typeof serializationSchema>): void;
   show(): string[];
@@ -435,12 +435,12 @@ console.log(results); // ['✓ Task 1: Completed', '✗ Task 2: Failed - Error m
 
 ### TaskState Methods
 
-#### `transferStateFromParent(parent)`
+#### `transferStateFromParent(agent)`
 
 Transfer task state from a parent agent instance.
 
 **Parameters**:
-- `parent`: `Agent` - Parent agent instance
+- `agent`: `Agent` - Parent agent instance
 
 **Note**: The tasks array is shared with the parent agent. This is a temporary implementation and should be revisited for better state isolation.
 
@@ -449,20 +449,16 @@ Transfer task state from a parent agent instance.
 taskState.transferStateFromParent(parentAgent);
 ```
 
-#### `reset(what)`
+#### `reset()`
 
-Reset task state based on specified criteria.
-
-**Parameters**:
-- `what`: `ResetWhat[]` - Array of reset criteria (e.g., `['chat']` to clear tasks on chat reset)
+Reset task state by clearing all tasks.
 
 **Behavior**:
-- When `['chat']` is specified, all tasks are cleared
-- Other reset criteria are passed through to other state handlers
+- Clears all tasks from the tasks array
 
 **Example**:
 ```typescript
-taskState.reset(['chat']); // Clears all tasks
+taskState.reset(); // Clears all tasks
 ```
 
 #### `serialize()`
@@ -684,7 +680,7 @@ bun test
 Or with watch mode:
 
 ```bash
-bun test:watch
+bun run test:watch
 ```
 
 ### Test Files

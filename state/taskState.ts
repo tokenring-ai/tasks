@@ -1,6 +1,5 @@
 import {Agent} from "@tokenring-ai/agent";
-import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
-import type {AgentStateSlice} from "@tokenring-ai/agent/types";
+import {AgentStateSlice} from "@tokenring-ai/agent/types";
 import {z} from "zod";
 import {TaskServiceConfigSchema} from "../schema.ts";
 
@@ -28,14 +27,13 @@ const serializationSchema = z.object({
   parallelTasks: z.number()
 });
 
-export class TaskState implements AgentStateSlice<typeof serializationSchema> {
-  readonly name = "TaskState";
-  serializationSchema = serializationSchema;
+export class TaskState extends AgentStateSlice<typeof serializationSchema> {
   readonly tasks: Task[] = [];
   autoApprove: number;
   parallelTasks: number;
 
   constructor(readonly initialConfig: z.output<typeof TaskServiceConfigSchema>["agentDefaults"]) {
+    super("TaskState", serializationSchema);
     this.autoApprove = initialConfig.autoApprove;
     this.parallelTasks = initialConfig.parallel;
   }
@@ -49,10 +47,8 @@ export class TaskState implements AgentStateSlice<typeof serializationSchema> {
     (this.tasks as any) = agent.getState(TaskState).tasks;
   }
 
-  reset(what: ResetWhat[]): void {
-    if (what.includes('chat')) {
-      this.tasks.splice(0, this.tasks.length);
-    }
+  reset(): void {
+          this.tasks.splice(0, this.tasks.length);
   }
 
   serialize(): z.output<typeof serializationSchema> {
