@@ -15,7 +15,8 @@ async function execute(_remainder: string, agent: Agent): Promise<string> {
   return lines.join("\n");
 }
 
-export default { name: "tasks list", description: "/tasks list - List all tasks", help: `# /tasks list
+export default {
+  name: "tasks list", description: "List all tasks", help: `# /tasks list
 
 Display all tasks in the current task queue with their status and details.
 

@@ -56,8 +56,7 @@ async function execute(
   return `Task plan executed:\n${results.join('\n')}`;
 }
 
-const description =
-  "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
+const description = "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection.";
 
 const inputSchema = z.object({
   tasks: z.array(z.object({

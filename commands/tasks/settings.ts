@@ -29,7 +29,8 @@ async function execute(remainder: string, agent: Agent): Promise<string> {
   return results.join("\n");
 }
 
-export default { name: "tasks settings", description: "/tasks settings - View or modify task settings", help: `# /tasks settings [key=value...]
+export default {
+  name: "tasks settings", description: "View or modify task settings", help: `# /tasks settings [key=value...]
 
 View or modify task settings. Omit arguments to show current settings.
 

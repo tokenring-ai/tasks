@@ -4,7 +4,7 @@ import TaskService from "../../TaskService.js";
 
 export default {
   name: "tasks clear",
-  description: "/tasks clear - Clear all tasks",
+  description: "Clear all tasks",
   help: `# /tasks clear
 
 Remove all tasks from the current task queue.

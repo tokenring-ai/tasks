@@ -10,7 +10,8 @@ async function execute(_remainder: string, agent: Agent): Promise<string> {
   return `Task execution completed:\n${results.join('\n')}`;
 }
 
-export default { name: "tasks execute", description: "/tasks execute - Execute pending tasks", help: `# /tasks execute
+export default {
+  name: "tasks execute", description: "Execute pending tasks", help: `# /tasks execute
 
 Execute all pending tasks in the task queue.
 
