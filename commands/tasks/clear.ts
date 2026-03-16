@@ -1,19 +1,19 @@
-import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import TaskService from "../../TaskService.js";
+
+const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "tasks clear",
   description: "Clear all tasks",
-  help: `# /tasks clear
-
-Remove all tasks from the current task queue.
+  help: `Remove all tasks from the current task queue.
 
 ## Example
 
 /tasks clear`,
-  execute: async (_remainder: string, agent: Agent): Promise<string> => {
+  inputSchema,
+  execute: async ({agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
     agent.requireServiceByType(TaskService).clearTasks(agent);
     return "Cleared all tasks";
   },
-} satisfies TokenRingAgentCommand;
+} satisfies TokenRingAgentCommand<typeof inputSchema>;

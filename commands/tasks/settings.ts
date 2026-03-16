@@ -1,12 +1,23 @@
-import Agent from "@tokenring-ai/agent/Agent";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import indent from "@tokenring-ai/utility/string/indent";
 import {TaskState} from "../../state/taskState.ts";
 
-async function execute(remainder: string, agent: Agent): Promise<string> {
+const inputSchema = {
+  args: {},
+  positionals: [{
+    name: "settings",
+    description: "Settings as key=value pairs",
+    required: false,
+    greedy: true,
+  }],
+  allowAttachments: false,
+} as const satisfies AgentCommandInputSchema;
+
+async function execute({positionals, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> {
   const {parallelTasks, autoApprove} = agent.getState(TaskState);
-  if (!remainder.trim()) {
+  const remainder = positionals.settings;
+  if (!remainder) {
     return ["Task Settings:", indent([`Auto-approve: ${autoApprove}s`, `Parallel tasks: ${parallelTasks}`], 1), "", "Usage:", indent("/tasks settings auto-approve=<seconds> parallel=<number>", 1)].join("\n");
   }
   const results: string[] = [];
@@ -30,13 +41,15 @@ async function execute(remainder: string, agent: Agent): Promise<string> {
 }
 
 export default {
-  name: "tasks settings", description: "View or modify task settings", help: `# /tasks settings [key=value...]
-
-View or modify task settings. Omit arguments to show current settings.
+  name: "tasks settings",
+  description: "View or modify task settings",
+  help: `View or modify task settings. Omit arguments to show current settings.
 
 ## Example
 
 /tasks settings
 /tasks settings auto-approve=30
-/tasks settings parallel=3
-/tasks settings auto-approve=30 parallel=5`, execute } satisfies TokenRingAgentCommand;
+/tasks settings parallel=3`,
+  inputSchema,
+  execute,
+} satisfies TokenRingAgentCommand<typeof inputSchema>;
