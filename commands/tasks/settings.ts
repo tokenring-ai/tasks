@@ -5,18 +5,11 @@ import {TaskState} from "../../state/taskState.ts";
 
 const inputSchema = {
   args: {},
-  positionals: [{
-    name: "settings",
-    description: "Settings as key=value pairs",
-    required: false,
-    greedy: true,
-  }],
-  allowAttachments: false,
+  remainder: {name: "settings", description: "Settings as key=value pairs"}
 } as const satisfies AgentCommandInputSchema;
 
-async function execute({positionals, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> {
+async function execute({remainder, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> {
   const {parallelTasks, autoApprove} = agent.getState(TaskState);
-  const remainder = positionals.settings;
   if (!remainder) {
     return ["Task Settings:", indent([`Auto-approve: ${autoApprove}s`, `Parallel tasks: ${parallelTasks}`], 1), "", "Usage:", indent("/tasks settings auto-approve=<seconds> parallel=<number>", 1)].join("\n");
   }
