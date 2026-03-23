@@ -1,5 +1,5 @@
+import {SubAgentService} from "@tokenring-ai/agent";
 import Agent from "@tokenring-ai/agent/Agent";
-import {runSubAgent} from "@tokenring-ai/agent/runSubAgent";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
@@ -81,16 +81,17 @@ export default class TaskService implements TokenRingService {
       this.updateTaskStatus(task.id, 'running', undefined, parentAgent);
 
       try {
-        const result = await runSubAgent(
+        const subAgentService = parentAgent.requireServiceByType(SubAgentService);
+        const result = await subAgentService.runSubAgent(
           {
             agentType: task.agentType,
             headless: parentAgent.headless,
             input: {
               from: `Task ${task.name}`,
               message: `/work ${task.message}\n\nImportant Context:\n${task.context}`,
-            }
-          },
-          parentAgent
+            },
+            parentAgent
+          }
         );
 
         if (result.status === 'success') {
