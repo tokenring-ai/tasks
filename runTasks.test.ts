@@ -1,15 +1,13 @@
-import Agent from '@tokenring-ai/agent/Agent';
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
-import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {TaskState} from "./state/taskState";
-import TaskService from './TaskService';
-import runTasks from './tools/runTasks';
+import {TaskState} from "./state/taskState.js";
+import TaskService from './TaskService.js';
+import runTasks from './tools/runTasks.js';
 
 describe('runTasks Tool', () => {
-  let app: TokenRingApp;
-  let agent: Agent;
+  let app: any;
+  let agent: any;
   let taskService: TaskService;
 
   beforeEach(() => {
@@ -26,7 +24,8 @@ describe('runTasks Tool', () => {
     agent = createTestingAgent(app);
     taskService.attach(agent);
 
-
+    // Spy on chatOutput before any operations
+    vi.spyOn(agent, 'chatOutput');
     vi.spyOn(taskService, 'executeTasks').mockResolvedValue(['executed!']);
   });
 
@@ -50,7 +49,8 @@ describe('runTasks Tool', () => {
         agentType: 'data-processor',
         message: 'Process the uploaded CSV file and generate insights',
         context: 'The CSV file contains sales data. You need to analyze trends and create visualizations.',
-      }, {
+      },
+      {
         taskName: 'Send Email',
         agentType: 'email-sender',
         message: 'Send a confirmation email to the customer',
@@ -59,98 +59,66 @@ describe('runTasks Tool', () => {
     ];
 
     it('should execute tasks successfully with user approval', async () => {
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
       vi.spyOn(taskService, 'executeTasks').mockResolvedValue(['✓ Process Data: Completed', '✓ Send Email: Completed']);
-      vi.spyOn(agent, 'chatOutput');
-      vi.spyOn(taskService, 'addTask');
+      vi.spyOn(taskService, 'addTask').mockImplementation((task, agent) => `task-id-${task.name}`);
+      
       agent.config.headless = false;
+      
       const result = await runTasks.execute({ tasks: validTasks }, agent);
 
       expect(agent.chatOutput).toHaveBeenCalledWith('The following task plan has been generated:');
       expect(agent.chatOutput).toHaveBeenCalledWith(expect.stringContaining('Process Data'));
       expect(agent.chatOutput).toHaveBeenCalledWith(expect.stringContaining('Send Email'));
       
-      expect(agent.askQuestion).toHaveBeenCalledWith({
-        "question": {
-          "defaultValue": [
-            "Approved",
-          ],
-          "label": "Approve ?",
-          "maximumSelections": 1,
-          "minimumSelections": 1,
-          "tree": [
-            {
-              "name": "Yes",
-              "value": "Approved",
-            },
-            {
-              "name": "No",
-              "value": "Not approved",
-            },
-          ],
-          "type": "treeSelect",
-        },
+      expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining('Task Plan:'),
-        autoSubmitAfter: 5,
-
+        default: true,
+        timeout: 5
       });
 
       expect(taskService.addTask).toHaveBeenCalledTimes(2);
       expect(taskService.executeTasks).toHaveBeenCalledWith(
-        [expect.stringContaining("-"), expect.stringContaining("-")], agent
+        expect.arrayContaining([expect.any(String)]), 
+        agent
       );
 
       expect(result).toContain('Task plan executed:');
-      expect(result).toContain('Process Data: Completed');
-      expect(result).toContain('Send Email: Completed');
+      expect(result).toContain('✓ Process Data: Completed');
+      expect(result).toContain('✓ Send Email: Completed');
     });
 
     it('should handle auto-approve timeout', async () => {
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
-      agent.config.headless = false;
       agent.mutateState(TaskState, state => {
         state.autoApprove = 30;
       });
+      
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
+      agent.config.headless = false;
 
-      const result = await runTasks.execute({ tasks: validTasks }, agent);
+      await runTasks.execute({ tasks: validTasks }, agent);
 
-      expect(agent.askQuestion).toHaveBeenCalledWith({
-        "autoSubmitAfter": 30,
-        "question": {
-          "defaultValue": [
-            "Approved",
-          ],
-          "label": "Approve ?",
-          "maximumSelections": 1,
-          "minimumSelections": 1,
-          "tree": [
-            {
-              "name": "Yes",
-              "value": "Approved",
-            },
-            {
-              "name": "No",
-              "value": "Not approved",
-            },
-          ],
-          "type": "treeSelect",
-        },
+      expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining('Task Plan:'),
+        default: true,
+        timeout: 30
       });
     });
 
     it('should handle user rejection', async () => {
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(["Not approved"]);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(false);
+      vi.spyOn(agent, 'askForText').mockResolvedValue('The plan is not clear enough');
       agent.config.headless = false;
 
       const result = await runTasks.execute({ tasks: validTasks }, agent);
 
-      expect(result).toBe('Task plan rejected. Reason: Not approved');
+      expect(result).toBe('Task plan rejected. Reason: The plan is not clear enough');
     });
 
     it('should format task plan correctly', async () => {
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
       agent.config.headless = false;
+      
       const singleTask = [
         {
           taskName: 'Test Task',
@@ -162,35 +130,18 @@ describe('runTasks Tool', () => {
 
       await runTasks.execute({ tasks: singleTask }, agent);
 
-      expect(agent.askQuestion).toHaveBeenCalledWith({
-        "autoSubmitAfter": 5,
-        "question": {
-          "defaultValue": [
-            "Approved",
-          ],
-          "label": "Approve ?",
-          "maximumSelections": 1,
-          "minimumSelections": 1,
-          "tree": [
-            {
-              "name": "Yes",
-              "value": "Approved",
-            },
-            {
-              "name": "No",
-              "value": "Not approved",
-            },
-          ],
-          "type": "treeSelect",
-        },
+      expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining('1. Test Task (test-agent)'),
+        default: true,
+        timeout: 5
       });
     });
 
     it('should preserve task context information', async () => {
-      vi.spyOn(taskService, 'addTask');
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
+      vi.spyOn(taskService, 'addTask').mockImplementation((task, agent) => `task-id-${task.name}`);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
       agent.config.headless = false;
+      
       const tasksWithContext = [
         {
           taskName: 'Complex Task',
@@ -232,19 +183,19 @@ describe('runTasks Tool', () => {
         },
       ];
 
-      vi.spyOn(taskService, 'addTask');
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
+      vi.spyOn(taskService, 'addTask').mockImplementation((task, agent) => `task-id-${task.name}`);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
       agent.config.headless = false;
 
       await runTasks.execute({ tasks: mixedTasks }, agent);
 
       expect(taskService.addTask).toHaveBeenCalledTimes(3);
-      expect(taskService.executeTasks).toHaveBeenCalledWith([
-        expect.stringContaining("-"), expect.stringContaining("-"), expect.stringContaining("-")
-      ], agent);
+      expect(taskService.executeTasks).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.any(String), expect.any(String), expect.any(String)]),
+        agent
+      );
     });
   });
-
 
   describe('User Interaction', () => {
     it('should present clear task plan to user', async () => {
@@ -257,9 +208,9 @@ describe('runTasks Tool', () => {
         },
       ];
 
-      vi.spyOn(agent, 'chatOutput');
+      vi.spyOn(taskService, 'addTask').mockImplementation((task, agent) => `task-id-${task.name}`);
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(true);
       agent.config.headless = false;
-      vi.spyOn(agent, 'askQuestion').mockResolvedValue(['Approved']);
 
       await runTasks.execute({ tasks }, agent);
 
@@ -268,26 +219,20 @@ describe('runTasks Tool', () => {
     });
 
     it('should handle human input for rejection reason', async () => {
-      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce(["Not approved"]);
-      vi.spyOn(agent, 'askQuestion').mockResolvedValueOnce('The plan is not clear enough');
+      vi.spyOn(agent, 'askForApproval').mockResolvedValue(false);
+      vi.spyOn(agent, 'askForText').mockResolvedValue('The plan is not clear enough');
       agent.config.headless = false;
-
 
       await runTasks.execute({ tasks: [{
         taskName: 'Download File',
         agentType: 'downloader',
         message: 'Download the latest release from GitHub',
         context: 'URL: https://github.com/example/repo/releases/latest',
-        }
-      ] }, agent);
+      }] }, agent);
 
-      expect(agent.askQuestion).toHaveBeenCalledWith({
-        "question": {
-          "label": "Reason:",
-          "masked": undefined,
-          "type": "text",
-        },
+      expect(agent.askForText).toHaveBeenCalledWith({
         message: 'Please explain why you are rejecting this task plan:',
+        label: "Reason:"
       });
     });
   });
