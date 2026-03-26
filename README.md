@@ -22,8 +22,10 @@ The `@tokenring-ai/tasks` package provides a complete task planning and executio
 This package is part of the TokenRing AI ecosystem. Install it as a dependency:
 
 ```bash
-bun install @tokenring-ai/tasks
+bun add @tokenring-ai/tasks
 ```
+
+For local development in the TokenRing monorepo, the package is available as a workspace dependency.
 
 ## Package Structure
 
@@ -55,11 +57,11 @@ pkg/tasks/
 └── tasksCommand.test.ts        # Command tests
 ```
 
-## Core Components
+## Services
 
 ### TaskService
 
-The main service that manages the complete task lifecycle:
+The TaskService is the core service that manages the complete task lifecycle within the TokenRing ecosystem.
 
 ```typescript
 class TaskService implements TokenRingService {

@@ -1,5 +1,5 @@
 import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
-import TaskService from "../../TaskService.js";
+import TaskService from "../../TaskService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 

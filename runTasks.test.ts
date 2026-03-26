@@ -1,9 +1,9 @@
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {TaskState} from "./state/taskState.js";
-import TaskService from './TaskService.js';
-import runTasks from './tools/runTasks.js';
+import {TaskState} from "./state/taskState.ts";
+import TaskService from './TaskService.ts';
+import runTasks from './tools/runTasks.ts';
 
 describe('runTasks Tool', () => {
   let app: any;

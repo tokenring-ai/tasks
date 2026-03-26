@@ -52,7 +52,6 @@ async function execute(
 
   // Execute all tasks
   const results = await taskService.executeTasks(taskIds, agent);
-
   return `Task plan executed:\n${results.join('\n')}`;
 }
 

@@ -7,7 +7,7 @@ import agentCommands from "./commands.ts";
 import contextHandlers from "./contextHandlers.ts";
 import packageJSON from './package.json' with {type: 'json'};
 import {TaskServiceConfigSchema} from "./schema.ts";
-import TaskService from "./TaskService.js";
+import TaskService from "./TaskService.ts";
 import tools from "./tools.ts";
 
 const packageConfigSchema = z.object({

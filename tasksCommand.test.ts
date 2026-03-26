@@ -1,12 +1,12 @@
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import listCommand from './commands/tasks/list.js';
-import executeCommand from './commands/tasks/execute.js';
-import clearCommand from './commands/tasks/clear.js';
-import settingsCommand from './commands/tasks/settings.js';
-import TaskService from './TaskService.js';
-import {TaskState} from "./state/taskState.js";
+import listCommand from './commands/tasks/list.ts';
+import executeCommand from './commands/tasks/execute.ts';
+import clearCommand from './commands/tasks/clear.ts';
+import settingsCommand from './commands/tasks/settings.ts';
+import TaskService from './TaskService.ts';
+import {TaskState} from "./state/taskState.ts";
 
 describe('Tasks Commands', () => {
   let mockAgent: any;
