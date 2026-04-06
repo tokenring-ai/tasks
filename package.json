@@ -1,7 +1,7 @@
 {
   "name": "@tokenring-ai/tasks",
   "version": "0.2.0",
-  "description": "Task planning and execution framework for TokenRing AI agents",
+  "description": "Framework for planning and executing complex, multi-agent collaborative workflows.",
   "dependencies": {
     "@tokenring-ai/app": "0.2.0",
     "@tokenring-ai/chat": "0.2.0",
