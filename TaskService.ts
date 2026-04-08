@@ -86,10 +86,8 @@ export default class TaskService implements TokenRingService {
           {
             agentType: task.agentType,
             headless: parentAgent.headless,
-            input: {
-              from: `Task ${task.name}`,
-              message: `/work ${task.message}\n\nImportant Context:\n${task.context}`,
-            },
+            from: `Task ${task.name}`,
+            steps: [`${task.message}\n\nImportant Context:\n${task.context}`],
             parentAgent
           }
         );
