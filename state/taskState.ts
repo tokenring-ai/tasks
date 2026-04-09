@@ -1,4 +1,5 @@
 import {Agent} from "@tokenring-ai/agent";
+import {type ParsedSubAgentConfig, SubAgentConfigSchema} from "@tokenring-ai/agent/schema";
 import {AgentStateSlice} from "@tokenring-ai/agent/types";
 import {z} from "zod";
 import {TaskServiceConfigSchema} from "../schema.ts";
@@ -24,18 +25,24 @@ const serializationSchema = z.object({
     result: z.string().optional()
   })),
   autoApprove: z.number(),
-  parallelTasks: z.number()
+  parallelTasks: z.number(),
+  allowedSubAgents: z.array(z.string()),
+  subAgent: SubAgentConfigSchema,
 });
 
 export class TaskState extends AgentStateSlice<typeof serializationSchema> {
   readonly tasks: Task[] = [];
   autoApprove: number;
   parallelTasks: number;
+  allowedSubAgents: string[];
+  subAgent: ParsedSubAgentConfig;
 
   constructor(readonly initialConfig: z.output<typeof TaskServiceConfigSchema>["agentDefaults"]) {
     super("TaskState", serializationSchema);
     this.autoApprove = initialConfig.autoApprove;
     this.parallelTasks = initialConfig.parallel;
+    this.allowedSubAgents = initialConfig.allowedSubAgents;
+    this.subAgent = initialConfig.subAgent;
   }
 
 
@@ -56,6 +63,8 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
       tasks: this.tasks,
       autoApprove: this.autoApprove,
       parallelTasks: this.parallelTasks,
+      allowedSubAgents: this.allowedSubAgents,
+      subAgent: this.subAgent,
     };
   }
 
@@ -64,8 +73,10 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
       this.tasks.splice(0, data.tasks.length, ...data.tasks);
     }
 
-    this.autoApprove = data.autoApprove ?? 0;
-    this.parallelTasks = data.parallelTasks ?? 1;
+    this.autoApprove = data.autoApprove;
+    this.parallelTasks = data.parallelTasks;
+    this.allowedSubAgents = data.allowedSubAgents;
+    this.subAgent = data.subAgent;
   }
 
   show(): string[] {
@@ -77,7 +88,8 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
       `Total Tasks: ${this.tasks.length}`,
       ...Object.entries(statusCounts).map(([status, count]) => `  ${status}: ${count}`),
       `Auto-approve: ${this.autoApprove > 0 ? `${this.autoApprove}s` : 'disabled'}`,
-      `Parallel tasks: ${this.parallelTasks}`
+      `Parallel tasks: ${this.parallelTasks}`,
+      `Allowed sub-agents: ${this.allowedSubAgents.length > 0 ? this.allowedSubAgents.join(', ') : 'none'}`,
     ];
   }
 }

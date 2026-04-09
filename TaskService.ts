@@ -1,5 +1,6 @@
 import {SubAgentService} from "@tokenring-ai/agent";
 import Agent from "@tokenring-ai/agent/Agent";
+import AgentManager from "@tokenring-ai/agent/services/AgentManager";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
@@ -16,7 +17,17 @@ export default class TaskService implements TokenRingService {
   constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
   attach(agent: Agent): void {
     const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice('tasks', TaskAgentConfigSchema));
-    agent.initializeState(TaskState, config);
+
+    const agentManager = agent.requireServiceByType(AgentManager);
+
+    // Resolve wildcards to actual agent types
+    const resolvedAllowedAgents = agentManager.getAgentTypesLike(config.allowedSubAgents).map(([type]) => type);
+
+    // Initialize the TaskState with resolved allowed agents
+    agent.initializeState(TaskState, {
+      ...config,
+      allowedSubAgents: resolvedAllowedAgents
+    });
   }
 
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string {
@@ -74,21 +85,32 @@ export default class TaskService implements TokenRingService {
     const tasks = this.getTasks(parentAgent);
     const taskMap = new Map(tasks.map(t => [t.id, t]));
 
+    const allowedSubAgents = state.allowedSubAgents;
+    for (const task of tasks) {
+      if (!allowedSubAgents.includes(task.agentType)) {
+        throw new Error(`Sub-agent type "${task.agentType}" is not allowed for this agent.`);
+      }
+    }
+
     const executeTask = async (taskId: string): Promise<string> => {
       const task = taskMap.get(taskId);
       if (!task) return `✗ Task ${taskId}: Not found`;
 
       this.updateTaskStatus(task.id, 'running', undefined, parentAgent);
+      const subAgentOptions = parentAgent.getState(TaskState).subAgent;
 
       try {
         const subAgentService = parentAgent.requireServiceByType(SubAgentService);
+
         const result = await subAgentService.runSubAgent(
           {
             agentType: task.agentType,
             headless: parentAgent.headless,
             from: `Task ${task.name}`,
             steps: [`${task.message}\n\nImportant Context:\n${task.context}`],
-            parentAgent
+            parentAgent,
+            options: subAgentOptions
+
           }
         );
 

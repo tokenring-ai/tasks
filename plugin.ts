@@ -1,6 +1,8 @@
 import {AgentCommandService} from "@tokenring-ai/agent";
+import tasksRPC from "./rpc/tasks.ts";
 import {TokenRingPlugin} from "@tokenring-ai/app";
 import {ChatService} from "@tokenring-ai/chat";
+import {RpcService} from "@tokenring-ai/rpc";
 import {z} from "zod";
 
 import agentCommands from "./commands.ts";
@@ -29,6 +31,10 @@ export default {
       agentCommandService.addAgentCommands(agentCommands)
     );
     app.addServices(new TaskService(config.tasks));
+
+    app.waitForService(RpcService, rpcService => {
+      rpcService.registerEndpoint(tasksRPC);
+    });
   },
   config: packageConfigSchema
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
