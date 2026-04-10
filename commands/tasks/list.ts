@@ -1,17 +1,22 @@
-import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand,} from "@tokenring-ai/agent/types";
 import indent from "@tokenring-ai/utility/string/indent";
 import TaskService from "../../TaskService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
-async function execute({agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> {
+function execute({
+                   agent,
+                 }: AgentCommandInputType<typeof inputSchema>): string {
   const tasks = agent.requireServiceByType(TaskService).getTasks(agent);
   if (tasks.length === 0) return "No tasks in the list";
   const lines = ["Current tasks:"];
   tasks.forEach((task, index) => {
     lines.push(`[${index}] ${task.name} (${task.status})`);
-    lines.push(indent([`Agent: ${task.agentType}`, `Message: ${task.message}`], 2));
-    if (task.result) lines.push(indent(`Result: ${task.result.substring(0, 100)}...`, 2));
+    lines.push(
+      indent([`Agent: ${task.agentType}`, `Message: ${task.message}`], 2),
+    );
+    if (task.result)
+      lines.push(indent(`Result: ${task.result.substring(0, 100)}...`, 2));
   });
   return lines.join("\n");
 }

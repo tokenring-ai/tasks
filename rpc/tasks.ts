@@ -33,7 +33,7 @@ export default createRPCEndpoint(TaskRPCSchema, {
 
     agent.mutateState(TaskState, (state) => {
       state.allowedSubAgents = state.allowedSubAgents.filter(
-        (agentType) => !args.agents.includes(agentType)
+        (agentType) => !args.agents.includes(agentType),
       );
     });
 

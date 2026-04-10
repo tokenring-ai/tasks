@@ -1,18 +1,20 @@
-import {type ContextHandlerOptions, ContextItem} from "@tokenring-ai/chat/schema";
+import type {ContextHandlerOptions, ContextItem,} from "@tokenring-ai/chat/schema";
 import TaskService from "../TaskService.ts";
 
-export default async function* getContextItems({agent}: ContextHandlerOptions): AsyncGenerator<ContextItem> {
+export default function* getContextItems({
+                                           agent,
+                                         }: ContextHandlerOptions): Generator<ContextItem> {
   const taskService = agent.requireServiceByType(TaskService);
 
   const tasks = taskService.getTasks(agent);
   if (tasks.length > 0) {
-    const taskSummary = tasks.map(t =>
-      `- ${t.name} (${t.status}): ${t.agentType} - ${t.message}`
-    ).join('\n');
+    const taskSummary = tasks
+      .map((t) => `- ${t.name} (${t.status}): ${t.agentType} - ${t.message}`)
+      .join("\n");
 
     yield {
       role: "user",
-      content: `/* The user has approved the following task plan */:\n${taskSummary}`
+      content: `/* The user has approved the following task plan */:\n${taskSummary}`,
     };
   }
 }
