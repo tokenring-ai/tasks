@@ -1,5 +1,5 @@
 import type {Agent} from "@tokenring-ai/agent";
-import {type ParsedSubAgentConfig, SubAgentConfigSchema,} from "@tokenring-ai/agent/schema";
+import {type ParsedSubAgentConfig, SubAgentConfigSchema} from "@tokenring-ai/agent/schema";
 import {AgentStateSlice} from "@tokenring-ai/agent/types";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
 import {z} from "zod";

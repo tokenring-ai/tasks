@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import {TaskState} from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
@@ -10,7 +10,7 @@ const displayName = "Tasks/runTasks";
 async function execute(
   {tasks}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<string> {
+): Promise<TokenRingToolResult> {
   const taskService = agent.requireServiceByType(TaskService);
 
   agent.chatOutput(`The following task plan has been generated:`);
@@ -38,7 +38,7 @@ async function execute(
       message: "Please explain why you are rejecting this task plan:",
       label: "Reason:",
     });
-    return `Task plan rejected. Reason: ${reason}`;
+    throw new Error(`Task plan rejected. Reason: ${reason}`);
   }
 
   // Add tasks and execute immediately
@@ -58,7 +58,16 @@ async function execute(
 
   // Execute all tasks
   const results = await taskService.executeTasks(taskIds, agent);
-  return `Task plan executed:\n${results.join("\n")}`;
+  return {
+    summary: "RunTasks (Executed)",
+    result: `Task plan executed`,
+    attachments: results.map((result, i) => ({
+      name: `task_${i + 1}_result.md`,
+      mimeType: "text/markdown",
+      encoding: "text",
+      body: result,
+    })),
+  }
 }
 
 const description =

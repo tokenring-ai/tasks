@@ -307,6 +307,7 @@ const inputSchema = z.object({
 ```
 
 **Behavior**:
+
 - Presents task plan to user for approval
 - Respects auto-approve configuration if set
 - If approved: adds tasks and executes them with parallel processing
@@ -350,11 +351,13 @@ Display all tasks in the current task queue with their status, agent type, and m
 **Command**: `tasks list`
 
 **Example**:
+
 ```
 /tasks list
 ```
 
 **Output**:
+
 ```
 Current tasks:
 [0] Process Data (pending)
@@ -373,11 +376,13 @@ Execute all pending tasks by dispatching them to their respective agents. Only t
 **Command**: `tasks execute`
 
 **Example**:
+
 ```
 /tasks execute
 ```
 
 **Output**:
+
 ```
 Task execution completed:
 ✓ Process Data: Completed
@@ -391,6 +396,7 @@ Remove all tasks from the current task queue. This action cannot be undone.
 **Command**: `tasks clear`
 
 **Example**:
+
 ```
 /tasks clear
 ```
@@ -404,6 +410,7 @@ View or modify task settings. Settings are stored in the agent state and apply t
 **Command**: `tasks settings [key=value...]`
 
 **Examples**:
+
 ```
 /tasks settings
 /tasks settings auto-approve=30
@@ -412,6 +419,7 @@ View or modify task settings. Settings are stored in the agent state and apply t
 ```
 
 **Output** (no arguments):
+
 ```
 Task Settings:
  Auto-approve: 30s
@@ -422,6 +430,7 @@ Usage:
 ```
 
 **Output** (with settings):
+
 ```
 Auto-approve enabled with 30s timeout
 Parallel tasks set to 5
@@ -436,12 +445,14 @@ Parallel tasks set to 5
 Add a single task to the task list.
 
 **Parameters**:
+
 - `task`: `Omit<Task, 'id' | 'status'>` - Task data without ID and status
 - `agent`: `Agent` - Current agent instance
 
 **Returns**: `string` - The generated task ID (UUID)
 
 **Example**:
+
 ```typescript
 const taskId = taskService.addTask({
   name: "Create user account",
@@ -456,11 +467,13 @@ const taskId = taskService.addTask({
 Retrieve all tasks with their current status.
 
 **Parameters**:
+
 - `agent`: `Agent` - Current agent instance
 
 **Returns**: `Task[]` - Array of all tasks (copy)
 
 **Example**:
+
 ```typescript
 const tasks = taskService.getTasks(agent);
 console.log(`Found ${tasks.length} tasks`);
@@ -471,6 +484,7 @@ console.log(`Found ${tasks.length} tasks`);
 Update the status and optionally the result of a task.
 
 **Parameters**:
+
 - `id`: `string` - Task ID
 - `status`: `Task['status']` - New status ('pending', 'running', 'completed', 'failed')
 - `result`: `string | undefined` - Execution result (optional)
@@ -479,6 +493,7 @@ Update the status and optionally the result of a task.
 **Throws**: `Error` if task not found
 
 **Example**:
+
 ```typescript
 taskService.updateTaskStatus(taskId, 'completed', 'User account created successfully', agent);
 ```
@@ -488,9 +503,11 @@ taskService.updateTaskStatus(taskId, 'completed', 'User account created successf
 Remove all tasks from the task list.
 
 **Parameters**:
+
 - `agent`: `Agent` - Current agent instance
 
 **Example**:
+
 ```typescript
 taskService.clearTasks(agent);
 ```
@@ -500,12 +517,14 @@ taskService.clearTasks(agent);
 Execute a list of tasks with configured parallelism.
 
 **Parameters**:
+
 - `taskIds`: `string[]` - IDs of tasks to execute (preserves order)
 - `parentAgent`: `Agent` - Current parent agent instance
 
 **Returns**: `Promise<string[]>` - Array of execution summaries
 
 **Example**:
+
 ```typescript
 const results = await taskService.executeTasks([taskId1, taskId2], agent);
 console.log(results);
@@ -513,6 +532,7 @@ console.log(results);
 ```
 
 **Implementation Details**:
+
 - Uses `async.mapLimit` for controlled parallelism
 - Updates task status to 'running' before execution
 - Updates task status to 'completed' or 'failed' after execution
@@ -525,11 +545,13 @@ console.log(results);
 Transfer task state from a parent agent instance.
 
 **Parameters**:
+
 - `agent`: `Agent` - Parent agent instance
 
 **Note**: The tasks array is shared with the parent agent (by reference). This is a temporary implementation and should be revisited for better state isolation.
 
 **Example**:
+
 ```typescript
 taskState.transferStateFromParent(parentAgent);
 ```
@@ -539,9 +561,11 @@ taskState.transferStateFromParent(parentAgent);
 Reset task state by clearing all tasks.
 
 **Behavior**:
+
 - Clears all tasks from the tasks array using `splice(0, this.tasks.length)`
 
 **Example**:
+
 ```typescript
 taskState.reset(); // Clears all tasks
 ```
@@ -553,6 +577,7 @@ Serialize task state for persistence.
 **Returns**: `z.output<typeof serializationSchema>` - Serialized state object
 
 **Example**:
+
 ```typescript
 const serialized = taskState.serialize();
 // { tasks: [...], autoApprove: 30, parallelTasks: 3 }
@@ -563,13 +588,16 @@ const serialized = taskState.serialize();
 Deserialize task state from persisted data.
 
 **Parameters**:
+
 - `data`: `z.output<typeof serializationSchema>` - Serialized state data
 
 **Behavior**:
+
 - Replaces tasks array using splice
 - Sets `autoApprove` and `parallelTasks` with fallback defaults
 
 **Example**:
+
 ```typescript
 taskState.deserialize({ tasks: [], autoApprove: 0, parallelTasks: 1 });
 ```
@@ -581,6 +609,7 @@ Get human-readable state summary.
 **Returns**: `string[]` - Array of state information lines
 
 **Example**:
+
 ```typescript
 const output = taskState.show();
 // Output: [
@@ -633,6 +662,7 @@ Provides current task summaries to agents as context.
 **Usage**: Automatically integrated when plugin is installed
 
 **Example Output**:
+
 ```typescript
 /* The user has approved the following task plan */:
 - Create user authentication (pending): backend-developer - Implement JWT-based authentication
@@ -641,6 +671,7 @@ Provides current task summaries to agents as context.
 ```
 
 **Implementation**:
+
 ```typescript
 export default async function* getContextItems({agent}: ContextHandlerOptions): AsyncGenerator<ContextItem> {
   const taskService = agent.requireServiceByType(TaskService);
@@ -840,6 +871,7 @@ await agent.executeTool('tasks_run', {
 ### Error Messages
 
 Failed tasks include detailed error information:
+
 ```
 ✗ Task Name: Failed - Error message details
 ```
