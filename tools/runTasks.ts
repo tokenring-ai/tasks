@@ -62,7 +62,8 @@ async function execute(
     summary: "RunTasks (Executed)",
     result: `Task plan executed`,
     attachments: results.map((result, i) => ({
-      name: `task_${i + 1}_result.md`,
+      sendToLLM: true,
+      name: `Task Result (${tasks[i].taskName})`,
       mimeType: "text/markdown",
       encoding: "text",
       body: result,
