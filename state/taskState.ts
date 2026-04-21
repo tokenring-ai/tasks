@@ -1,9 +1,9 @@
-import type {Agent} from "@tokenring-ai/agent";
-import {type ParsedSubAgentConfig, SubAgentConfigSchema} from "@tokenring-ai/agent/schema";
-import {AgentStateSlice} from "@tokenring-ai/agent/types";
+import type { Agent } from "@tokenring-ai/agent";
+import { type ParsedSubAgentConfig, SubAgentConfigSchema } from "@tokenring-ai/agent/schema";
+import { AgentStateSlice } from "@tokenring-ai/agent/types";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
-import {z} from "zod";
-import type {TaskServiceConfigSchema} from "../schema.ts";
+import { z } from "zod";
+import type { TaskServiceConfigSchema } from "../schema.ts";
 
 export interface Task {
   id: string;
@@ -24,7 +24,7 @@ const serializationSchema = z.object({
       message: z.string(),
       context: z.string(),
       status: z.enum(["pending", "running", "completed", "failed"]),
-      result: z.string().optional(),
+      result: z.string().exactOptional(),
     }),
   ),
   autoApprove: z.number(),
@@ -40,11 +40,7 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
   allowedSubAgents: string[];
   subAgent: ParsedSubAgentConfig;
 
-  constructor(
-    readonly initialConfig: z.output<
-      typeof TaskServiceConfigSchema
-    >["agentDefaults"],
-  ) {
+  constructor(readonly initialConfig: z.output<typeof TaskServiceConfigSchema>["agentDefaults"]) {
     super("TaskState", serializationSchema);
     this.autoApprove = initialConfig.autoApprove;
     this.parallelTasks = initialConfig.parallel;

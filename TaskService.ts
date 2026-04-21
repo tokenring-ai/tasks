@@ -1,34 +1,28 @@
-import {SubAgentService} from "@tokenring-ai/agent";
+import { SubAgentService } from "@tokenring-ai/agent";
 import type Agent from "@tokenring-ai/agent/Agent";
 import AgentManager from "@tokenring-ai/agent/services/AgentManager";
-import type {TokenRingService} from "@tokenring-ai/app/types";
+import type { TokenRingService } from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
 import async from "async";
-import {v4 as uuid} from "uuid";
-import type {z} from "zod";
-import {TaskAgentConfigSchema, type TaskServiceConfigSchema} from "./schema.ts";
-import {type Task, TaskState} from "./state/taskState.ts";
+import { v4 as uuid } from "uuid";
+import type { z } from "zod";
+import { TaskAgentConfigSchema, type TaskServiceConfigSchema } from "./schema.ts";
+import { type Task, TaskState } from "./state/taskState.ts";
 
 export default class TaskService implements TokenRingService {
   readonly name = "TaskService";
   description = "Provides task management functionality";
 
-  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {
-  }
+  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
 
   attach(agent: Agent): void {
-    const config = deepMerge(
-      this.options.agentDefaults,
-      agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema),
-    );
+    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema));
 
     const agentManager = agent.requireServiceByType(AgentManager);
 
     // Resolve wildcards to actual agent types
-    const resolvedAllowedAgents = agentManager
-      .getAgentTypesLike(config.allowedSubAgents)
-      .map(([type]) => type);
+    const resolvedAllowedAgents = agentManager.getAgentTypesLike(config.allowedSubAgents).map(([type]) => type);
 
     // Initialize the TaskState with resolved allowed agents
     agent.initializeState(TaskState, {
@@ -58,14 +52,9 @@ export default class TaskService implements TokenRingService {
     });
   }
 
-  updateTaskStatus(
-    id: string,
-    status: Task["status"],
-    result: string | undefined,
-    agent: Agent,
-  ): void {
+  updateTaskStatus(id: string, status: Task["status"], result: string | undefined, agent: Agent): void {
     agent.mutateState(TaskState, (state: TaskState) => {
-      const task = state.tasks.find((t) => t.id === id);
+      const task = state.tasks.find(t => t.id === id);
       if (task) {
         task.status = status;
         if (result !== undefined) {
@@ -92,14 +81,12 @@ export default class TaskService implements TokenRingService {
     const state = parentAgent.getState(TaskState);
     const parallelTasks = state.parallelTasks || 1;
     const tasks = this.getTasks(parentAgent);
-    const taskMap = new Map(tasks.map((t) => [t.id, t]));
+    const taskMap = new Map(tasks.map(t => [t.id, t]));
 
     const allowedSubAgents = state.allowedSubAgents;
     for (const task of tasks) {
       if (!allowedSubAgents.includes(task.agentType)) {
-        throw new Error(
-          `Sub-agent type "${task.agentType}" is not allowed for this agent.`,
-        );
+        throw new Error(`Sub-agent type "${task.agentType}" is not allowed for this agent.`);
       }
     }
 
@@ -111,8 +98,7 @@ export default class TaskService implements TokenRingService {
       const subAgentOptions = parentAgent.getState(TaskState).subAgent;
 
       try {
-        const subAgentService =
-          parentAgent.requireServiceByType(SubAgentService);
+        const subAgentService = parentAgent.requireServiceByType(SubAgentService);
 
         const result = await subAgentService.runSubAgent({
           agentType: task.agentType,
@@ -124,20 +110,10 @@ export default class TaskService implements TokenRingService {
         });
 
         if (result.status === "success") {
-          this.updateTaskStatus(
-            task.id,
-            "completed",
-            result.response,
-            parentAgent,
-          );
+          this.updateTaskStatus(task.id, "completed", result.response, parentAgent);
           return `✓ ${task.name}: Completed`;
         } else {
-          this.updateTaskStatus(
-            task.id,
-            "failed",
-            result.response,
-            parentAgent,
-          );
+          this.updateTaskStatus(task.id, "failed", result.response, parentAgent);
           return `✗ ${task.name}: Failed - ${result.response}`;
         }
       } catch (error: unknown) {

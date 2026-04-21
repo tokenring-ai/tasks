@@ -1,6 +1,6 @@
-import type {RPCSchema} from "@tokenring-ai/rpc/types";
-import {z} from "zod";
-import {AgentNotFoundSchema} from "@tokenring-ai/agent/schema";
+import { AgentNotFoundSchema } from "@tokenring-ai/agent/schema";
+import type { RPCSchema } from "@tokenring-ai/rpc/types";
+import { z } from "zod";
 
 export default {
   name: "Tasks RPC",
@@ -13,10 +13,10 @@ export default {
       }),
       result: z.discriminatedUnion("status", [
         z.object({
-          status: z.literal('success'),
+          status: z.literal("success"),
           agents: z.array(z.string()),
         }),
-        AgentNotFoundSchema
+        AgentNotFoundSchema,
       ]),
     },
     enableSubAgents: {
@@ -27,10 +27,10 @@ export default {
       }),
       result: z.discriminatedUnion("status", [
         z.object({
-          status: z.literal('success'),
+          status: z.literal("success"),
           success: z.boolean(),
         }),
-        AgentNotFoundSchema
+        AgentNotFoundSchema,
       ]),
     },
     disableSubAgents: {
@@ -41,10 +41,10 @@ export default {
       }),
       result: z.discriminatedUnion("status", [
         z.object({
-          status: z.literal('success'),
+          status: z.literal("success"),
           success: z.boolean(),
         }),
-        AgentNotFoundSchema
+        AgentNotFoundSchema,
       ]),
     },
   },

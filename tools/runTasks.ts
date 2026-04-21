@@ -1,31 +1,23 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
-import {z} from "zod";
-import {TaskState} from "../state/taskState.ts";
+import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { z } from "zod";
+import { TaskState } from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
 
 const name = "tasks_run";
 const displayName = "Tasks/runTasks";
 
-async function execute(
-  {tasks}: z.output<typeof inputSchema>,
-  agent: Agent,
-): Promise<TokenRingToolResult> {
+async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const taskService = agent.requireServiceByType(TaskService);
 
   agent.chatOutput(`The following task plan has been generated:`);
-  agent.chatOutput(tasks.map((t) => `- ${t.taskName}`).join("\n"));
+  agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join("\n"));
 
   // Check auto-approve setting
   const autoApproveTimeout = agent.getState(TaskState).autoApprove;
 
   // Present task plan to user
-  const taskPlan = tasks
-    .map(
-      (task, i) =>
-        `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`,
-    )
-    .join("\n\n");
+  const taskPlan = tasks.map((task, i) => `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`).join("\n\n");
 
   const approved = await agent.askForApproval({
     message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`,
@@ -68,7 +60,7 @@ async function execute(
       encoding: "text",
       body: result,
     })),
-  }
+  };
 }
 
 const description =
@@ -79,14 +71,8 @@ const inputSchema = z.object({
     .array(
       z.object({
         taskName: z.string().describe("A descriptive name for the task"),
-        agentType: z
-          .string()
-          .describe("The type of agent that should handle this task"),
-        message: z
-          .string()
-          .describe(
-            "A one paragraph message/description of what needs to be done, to send to the agent.",
-          ),
+        agentType: z.string().describe("The type of agent that should handle this task"),
+        message: z.string().describe("A one paragraph message/description of what needs to be done, to send to the agent."),
         context: z
           .string()
           .describe(

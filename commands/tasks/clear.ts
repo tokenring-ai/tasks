@@ -1,4 +1,4 @@
-import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import TaskService from "../../TaskService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
@@ -12,9 +12,7 @@ export default {
 
 /tasks clear`,
   inputSchema,
-  execute: ({
-              agent,
-            }: AgentCommandInputType<typeof inputSchema>): string => {
+  execute: ({ agent }: AgentCommandInputType<typeof inputSchema>): string => {
     agent.requireServiceByType(TaskService).clearTasks(agent);
     return "Cleared all tasks";
   },

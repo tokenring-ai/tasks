@@ -1,12 +1,12 @@
-import {SubAgentConfigSchema} from "@tokenring-ai/agent/schema";
-import {z} from "zod";
+import { SubAgentConfigSchema } from "@tokenring-ai/agent/schema";
+import { z } from "zod";
 
 export const TaskAgentConfigSchema = z
   .object({
-    autoApprove: z.number().optional(),
-    parallel: z.number().optional(),
-    allowedSubAgents: z.array(z.string()).optional(),
-    subAgent: SubAgentConfigSchema.optional(),
+    autoApprove: z.number().exactOptional(),
+    parallel: z.number().exactOptional(),
+    allowedSubAgents: z.array(z.string()).exactOptional(),
+    subAgent: SubAgentConfigSchema.exactOptional(),
   })
   .default({});
 
