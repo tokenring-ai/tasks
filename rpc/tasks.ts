@@ -6,15 +6,19 @@ import TaskRPCSchema from "./schema.ts";
 export default createRPCEndpoint(TaskRPCSchema, {
   getEnabledSubAgents(args, app) {
     const agent = app.requireService(AgentManager).getAgent(args.agentId);
-    if (!agent) throw new Error("Agent not found");
+    if (!agent) {
+      return {status: 'agentNotFound'};
+    }
 
     const taskState = agent.getState(TaskState);
-    return {agents: taskState.allowedSubAgents};
+    return {status: 'success', agents: taskState.allowedSubAgents};
   },
 
   enableSubAgents(args, app) {
     const agent = app.requireService(AgentManager).getAgent(args.agentId);
-    if (!agent) throw new Error("Agent not found");
+    if (!agent) {
+      return {status: 'agentNotFound'};
+    }
 
     agent.mutateState(TaskState, (state) => {
       for (const agentType of args.agents) {
@@ -24,12 +28,14 @@ export default createRPCEndpoint(TaskRPCSchema, {
       }
     });
 
-    return {success: true};
+    return {status: 'success', success: true};
   },
 
   disableSubAgents(args, app) {
     const agent = app.requireService(AgentManager).getAgent(args.agentId);
-    if (!agent) throw new Error("Agent not found");
+    if (!agent) {
+      return {status: 'agentNotFound'};
+    }
 
     agent.mutateState(TaskState, (state) => {
       state.allowedSubAgents = state.allowedSubAgents.filter(
@@ -37,6 +43,6 @@ export default createRPCEndpoint(TaskRPCSchema, {
       );
     });
 
-    return {success: true};
+    return {status: 'success', success: true};
   },
 });

@@ -1,5 +1,6 @@
 import type {RPCSchema} from "@tokenring-ai/rpc/types";
 import {z} from "zod";
+import {AgentNotFoundSchema} from "@tokenring-ai/agent/schema";
 
 export default {
   name: "Tasks RPC",
@@ -10,9 +11,13 @@ export default {
       input: z.object({
         agentId: z.string(),
       }),
-      result: z.object({
-        agents: z.array(z.string()),
-      }),
+      result: z.discriminatedUnion("status", [
+        z.object({
+          status: z.literal('success'),
+          agents: z.array(z.string()),
+        }),
+        AgentNotFoundSchema
+      ]),
     },
     enableSubAgents: {
       type: "mutation",
@@ -20,9 +25,13 @@ export default {
         agentId: z.string(),
         agents: z.array(z.string()),
       }),
-      result: z.object({
-        success: z.boolean(),
-      }),
+      result: z.discriminatedUnion("status", [
+        z.object({
+          status: z.literal('success'),
+          success: z.boolean(),
+        }),
+        AgentNotFoundSchema
+      ]),
     },
     disableSubAgents: {
       type: "mutation",
@@ -30,9 +39,13 @@ export default {
         agentId: z.string(),
         agents: z.array(z.string()),
       }),
-      result: z.object({
-        success: z.boolean(),
-      }),
+      result: z.discriminatedUnion("status", [
+        z.object({
+          status: z.literal('success'),
+          success: z.boolean(),
+        }),
+        AgentNotFoundSchema
+      ]),
     },
   },
 } satisfies RPCSchema;
