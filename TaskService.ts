@@ -141,7 +141,7 @@ export default class TaskService implements TokenRingService {
           return `✗ ${task.name}: Failed - ${result.response}`;
         }
       } catch (error: unknown) {
-        const errorString = formatLogMessages(["Error: ", error as any]);
+        const errorString = formatLogMessages(["Error: ", error as Error]);
         this.updateTaskStatus(task.id, "failed", errorString, parentAgent);
         return `✗ ${task.name}: Failed - ${errorString}`;
       }
