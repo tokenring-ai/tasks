@@ -1,10 +1,13 @@
 # @tokenring-ai/tasks
 
-A comprehensive task management service for the TokenRing AI ecosystem that enables agents to create, manage, and execute task plans with user approval workflows, parallel processing, and complete lifecycle tracking.
+A comprehensive task management service for the TokenRing AI ecosystem that enables agents to create, manage, and
+execute task plans with user approval workflows, parallel processing, and complete lifecycle tracking.
 
 ## Overview
 
-The `@tokenring-ai/tasks` package provides a complete task planning and execution framework for AI agents within the TokenRing system. It allows agents to create detailed task plans, present them to users for approval, and automatically execute approved tasks by dispatching them to specialized agents with configurable parallel processing.
+The `@tokenring-ai/tasks` package provides a complete task planning and execution framework for AI agents within the
+TokenRing system. It allows agents to create detailed task plans, present them to users for approval, and automatically
+execute approved tasks by dispatching them to specialized agents with configurable parallel processing.
 
 ### Key Features
 
@@ -68,7 +71,8 @@ class TaskService implements TokenRingService {
   readonly name = "TaskService";
   description = "Provides task management functionality";
 
-  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
+  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {
+  }
 
   attach(agent: Agent): void {
     // Initializes state with merged configuration
@@ -77,9 +81,13 @@ class TaskService implements TokenRingService {
   }
 
   addTask(task: Omit<Task, 'id' | 'status'>, agent: Agent): string;
+
   getTasks(agent: Agent): Task[];
+
   updateTaskStatus(id: string, status: Task['status'], result: string | undefined, agent: Agent): void;
+
   clearTasks(agent: Agent): void;
+
   executeTasks(taskIds: string[], parentAgent: Agent): Promise<string[]>;
 }
 ```
@@ -117,9 +125,13 @@ class TaskState extends AgentStateSlice {
   }
 
   transferStateFromParent(agent: Agent): void;
+
   reset(): void;
+
   serialize(): z.output<typeof serializationSchema>;
+
   deserialize(data: z.output<typeof serializationSchema>): void;
+
   show(): string[];
 }
 ```
@@ -283,13 +295,16 @@ const parallelLimit = agent.getState(TaskState).parallelTasks;
 
 ### tasks_run
 
-Create and present a complete task plan to the user for approval. If approved, execute all tasks immediately with parallel processing.
+Create and present a complete task plan to the user for approval. If approved, execute all tasks immediately with
+parallel processing.
 
 **Tool Name**: `tasks_run`
 
 **Display Name**: `Tasks/runTasks`
 
-**Description**: "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for rejection."
+**Description**: "Create and present a complete task plan to the user for approval (unless auto-approve is enabled). If
+approved, this will execute all tasks immediately and return results. If not approved, this will return a reason for
+rejection."
 
 **Required Context Handlers**: `["available-agents"]`
 
@@ -371,7 +386,8 @@ Current tasks:
 
 #### execute
 
-Execute all pending tasks by dispatching them to their respective agents. Only tasks with 'pending' status will be executed.
+Execute all pending tasks by dispatching them to their respective agents. Only tasks with 'pending' status will be
+executed.
 
 **Command**: `tasks execute`
 
@@ -548,7 +564,8 @@ Transfer task state from a parent agent instance.
 
 - `agent`: `Agent` - Parent agent instance
 
-**Note**: The tasks array is shared with the parent agent (by reference). This is a temporary implementation and should be revisited for better state isolation.
+**Note**: The tasks array is shared with the parent agent (by reference). This is a temporary implementation and should
+be revisited for better state isolation.
 
 **Example**:
 
@@ -739,10 +756,10 @@ export default {
 - **Parameter Parsing**: Robust parameter parsing and validation
 - **Help Integration**: Built-in help system with detailed documentation
 - **Command Structure**:
-  - `tasks list` - List all tasks
-  - `tasks execute` - Execute pending tasks
-  - `tasks clear` - Clear all tasks
-  - `tasks settings [key=value...]` - View/modify settings
+- `tasks list` - List all tasks
+- `tasks execute` - Execute pending tasks
+- `tasks clear` - Clear all tasks
+- `tasks settings [key=value...]` - View/modify settings
 
 ### State Management
 

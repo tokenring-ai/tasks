@@ -3,12 +3,12 @@
   "version": "0.2.0",
   "description": "Framework for planning and executing complex, multi-agent collaborative workflows.",
   "dependencies": {
-    "@tokenring-ai/app": "0.2.0",
-    "@tokenring-ai/chat": "0.2.0",
+    "@tokenring-ai/app": "workspace:*",
+    "@tokenring-ai/chat": "workspace:*",
     "zod": "^4.3.6",
-    "@tokenring-ai/agent": "0.2.0",
-    "@tokenring-ai/utility": "0.2.0",
-    "@tokenring-ai/rpc": "0.2.0",
+    "@tokenring-ai/agent": "workspace:*",
+    "@tokenring-ai/utility": "workspace:*",
+    "@tokenring-ai/rpc": "workspace:*",
     "uuid": "14.0.0",
     "async": "^3.2.6"
   },
