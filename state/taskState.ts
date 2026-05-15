@@ -1,6 +1,7 @@
 import type { Agent } from "@tokenring-ai/agent";
 import { type ParsedSubAgentConfig, SubAgentConfigSchema } from "@tokenring-ai/agent/schema";
 import { AgentStateSlice } from "@tokenring-ai/agent/types";
+import deepClone from "@tokenring-ai/utility/object/deepClone";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
 import { z } from "zod";
 import type { TaskServiceConfigSchema } from "../schema.ts";
@@ -26,7 +27,7 @@ const serializationSchema = z.object({
       status: z.enum(["pending", "running", "completed", "failed"]),
       result: z.string().exactOptional(),
     }),
-  ),
+  ).prefault([]),
   autoApprove: z.number(),
   parallelTasks: z.number(),
   allowedSubAgents: z.array(z.string()),
@@ -34,7 +35,7 @@ const serializationSchema = z.object({
 });
 
 export class TaskState extends AgentStateSlice<typeof serializationSchema> {
-  readonly tasks: Task[] = [];
+  tasks: Task[] = [];
   autoApprove: number;
   parallelTasks: number;
   allowedSubAgents: string[];
@@ -44,16 +45,12 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
     super("TaskState", serializationSchema);
     this.autoApprove = initialConfig.autoApprove;
     this.parallelTasks = initialConfig.parallel;
-    this.allowedSubAgents = initialConfig.allowedSubAgents;
-    this.subAgent = initialConfig.subAgent;
+    this.allowedSubAgents = [...initialConfig.allowedSubAgents];
+    this.subAgent = deepClone(initialConfig.subAgent);
   }
 
   transferStateFromParent(agent: Agent) {
-    /* TODO: The todo list is shared with the parent agent by sharing a reference to the same array
-     * This is extremely fragile and should be revisited. We set it to readonly to try and prevent
-     * the array from being replaced
-     */
-    (this.tasks as any) = agent.getState(TaskState).tasks;
+    this.tasks = deepClone(agent.getState(TaskState).tasks)
   }
 
   reset(): void {
@@ -71,10 +68,7 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   deserialize(data: z.output<typeof serializationSchema>): void {
-    if (data.tasks) {
-      this.tasks.splice(0, data.tasks.length, ...data.tasks);
-    }
-
+    this.tasks = data.tasks;
     this.autoApprove = data.autoApprove;
     this.parallelTasks = data.parallelTasks;
     this.allowedSubAgents = data.allowedSubAgents;

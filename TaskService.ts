@@ -2,7 +2,7 @@ import { SubAgentService } from "@tokenring-ai/agent";
 import type Agent from "@tokenring-ai/agent/Agent";
 import AgentManager from "@tokenring-ai/agent/services/AgentManager";
 import type { TokenRingService } from "@tokenring-ai/app/types";
-import deepMerge from "@tokenring-ai/utility/object/deepMerge";
+import deepClone from "@tokenring-ai/utility/object/deepClone";
 import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
 import async from "async";
 import { v4 as uuid } from "uuid";
@@ -17,7 +17,7 @@ export default class TaskService implements TokenRingService {
   constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
 
   attach(agent: Agent): void {
-    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema));
+    const config = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema));
 
     const agentManager = agent.requireServiceByType(AgentManager);
 
