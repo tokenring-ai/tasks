@@ -7,7 +7,7 @@ import runTasks from "./tools/runTasks.ts";
 
 describe("runTasks Tool", () => {
   let app: any;
-  let agent: any;
+  let agent: Agent;
   let taskService: TaskService;
 
   beforeEach(() => {
