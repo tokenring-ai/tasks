@@ -5,11 +5,11 @@
   "dependencies": {
     "@tokenring-ai/app": "workspace:*",
     "@tokenring-ai/chat": "workspace:*",
-    "zod": "^4.3.6",
+    "zod": "^4.4.3",
     "@tokenring-ai/agent": "workspace:*",
     "@tokenring-ai/utility": "workspace:*",
     "@tokenring-ai/rpc": "workspace:*",
-    "uuid": "14.0.0",
+    "uuid": "14.0.1",
     "async": "^3.2.6"
   },
   "devDependencies": {

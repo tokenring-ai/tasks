@@ -6,8 +6,42 @@ export default {
   name: "Tasks RPC",
   path: "/rpc/tasks",
   methods: {
+    getAvailableSubAgents: {
+      type: "query",
+      input: z.object({
+        agentId: z.string(),
+      }),
+      result: z.discriminatedUnion("status", [
+        z.object({
+          status: z.literal("success"),
+          agents: z.array(
+            z.object({
+              type: z.string(),
+              displayName: z.string(),
+              description: z.string(),
+              category: z.string().exactOptional(),
+              enabledTools: z.array(z.string()).default([]),
+            }),
+          ),
+        }),
+        AgentNotFoundSchema,
+      ]),
+    },
     getEnabledSubAgents: {
       type: "query",
+      input: z.object({
+        agentId: z.string(),
+      }),
+      result: z.discriminatedUnion("status", [
+        z.object({
+          status: z.literal("success"),
+          agents: z.array(z.string()),
+        }),
+        AgentNotFoundSchema,
+      ]),
+    },
+    streamEnabledSubAgents: {
+      type: "stream",
       input: z.object({
         agentId: z.string(),
       }),
