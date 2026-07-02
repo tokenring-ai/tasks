@@ -1,5 +1,5 @@
-import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
-import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
+import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent.test";
+import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import clearCommand from "./commands/tasks/clear.ts";
 import executeCommand from "./commands/tasks/execute.ts";

@@ -1,5 +1,6 @@
-import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
-import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
+import type Agent from "@tokenring-ai/agent/Agent";
+import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent.test";
+import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TaskState } from "./state/taskState.ts";
 import TaskService from "./TaskService.ts";
