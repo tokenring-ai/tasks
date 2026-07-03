@@ -17,17 +17,19 @@ export interface Task {
 }
 
 const serializationSchema = z.object({
-  tasks: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      agentType: z.string(),
-      message: z.string(),
-      context: z.string(),
-      status: z.enum(["pending", "running", "completed", "failed"]),
-      result: z.string().exactOptional(),
-    }),
-  ).prefault([]),
+  tasks: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        agentType: z.string(),
+        message: z.string(),
+        context: z.string(),
+        status: z.enum(["pending", "running", "completed", "failed"]),
+        result: z.string().exactOptional(),
+      }),
+    )
+    .prefault([]),
   autoApprove: z.number(),
   parallelTasks: z.number(),
   allowedSubAgents: z.array(z.string()),
@@ -50,7 +52,7 @@ export class TaskState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   transferStateFromParent(agent: Agent) {
-    this.tasks = deepClone(agent.getState(TaskState).tasks)
+    this.tasks = deepClone(agent.getState(TaskState).tasks);
   }
 
   reset(): void {

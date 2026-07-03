@@ -21,7 +21,7 @@ function execute({ remainder, agent }: AgentCommandInputType<typeof inputSchema>
   }
   const results: string[] = [];
   for (const setting of remainder.trim().split(/\s+/)) {
-    const match = setting.match(/^(auto-approve|parallel)=(.+)$/);
+    const match = setting.match(/^(auto-approve|parallel)=(.+)$/) as [string, string, string] | undefined;
     if (!match) throw new CommandFailedError(`Invalid setting: ${setting}`);
     const [, key, value] = match;
     if (key === "auto-approve") {

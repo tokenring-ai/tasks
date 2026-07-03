@@ -55,7 +55,7 @@ async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): P
     result: `Task plan executed`,
     attachments: results.map((result, i) => ({
       sendToLLM: true,
-      name: `Task Result (${tasks[i].taskName})`,
+      name: `Task Result (${tasks[i]?.taskName ?? "unknown"})`,
       mimeType: "text/markdown",
       encoding: "text",
       body: result,
