@@ -4,8 +4,8 @@ import { createAgentStateSliceStream } from "@tokenring-ai/rpc/createAgentStateS
 import { createRPCEndpoint } from "@tokenring-ai/rpc/createRPCEndpoint";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { TaskAgentConfigSchema } from "../schema.ts";
-import TaskService from "../TaskService.ts";
 import { TaskState } from "../state/taskState.ts";
+import TaskService from "../TaskService.ts";
 import TaskRPCSchema from "./schema.ts";
 
 const streamEnabledSubAgents = createAgentStateSliceStream({

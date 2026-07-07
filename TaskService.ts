@@ -2,8 +2,8 @@ import { SubAgentService } from "@tokenring-ai/agent";
 import type Agent from "@tokenring-ai/agent/Agent";
 import AgentManager from "@tokenring-ai/agent/services/AgentManager";
 import type { TokenRingService } from "@tokenring-ai/app/types";
+import formatError from "@tokenring-ai/utility/error/formatError";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
-import formatLogMessages from "@tokenring-ai/utility/string/formatLogMessage";
 import async from "async";
 import { v4 as uuid } from "uuid";
 import type { z } from "zod";
@@ -116,8 +116,8 @@ export default class TaskService implements TokenRingService {
           this.updateTaskStatus(task.id, "failed", result.response, parentAgent);
           return `✗ ${task.name}: Failed - ${result.response}`;
         }
-      } catch (error: unknown) {
-        const errorString = formatLogMessages(["Error: ", error as Error]);
+      } catch (err) {
+        const errorString = formatError(err);
         this.updateTaskStatus(task.id, "failed", errorString, parentAgent);
         return `✗ ${task.name}: Failed - ${errorString}`;
       }

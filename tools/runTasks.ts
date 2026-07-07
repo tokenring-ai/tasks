@@ -1,5 +1,6 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { ToolCallError } from "@tokenring-ai/chat/util/tokenRingTool";
 import { z } from "zod";
 import { TaskState } from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
@@ -30,7 +31,7 @@ async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): P
       message: "Please explain why you are rejecting this task plan:",
       label: "Reason:",
     });
-    throw new Error(`Task plan rejected. Reason: ${reason}`);
+    throw new ToolCallError(name, `Task plan rejected. Reason: ${reason}`);
   }
 
   // Add tasks and execute immediately
