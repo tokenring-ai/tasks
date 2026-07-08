@@ -1,6 +1,6 @@
 import { AgentManager } from "@tokenring-ai/agent";
+import { createAgentStateSliceStream } from "@tokenring-ai/agent/rpc/createAgentStateStream";
 import type { ParsedAgentConfig } from "@tokenring-ai/agent/schema";
-import { createAgentStateSliceStream } from "@tokenring-ai/rpc/createAgentStateStream";
 import { createRPCEndpoint } from "@tokenring-ai/rpc/createRPCEndpoint";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { TaskAgentConfigSchema } from "../schema.ts";
