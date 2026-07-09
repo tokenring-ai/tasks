@@ -18,7 +18,19 @@ describe("Tasks Commands", () => {
     mockTaskService = new TaskService({
       agentDefaults: {
         autoApprove: 5,
-        parallel: 1
+        parallel: 1,
+        allowedSubAgents: [],
+        subAgent: {
+          forwardChatOutput: false,
+          forwardStatusMessages: true,
+          forwardSystemOutput: false,
+          forwardHumanRequests: true,
+          forwardReasoning: false,
+          forwardInputCommands: true,
+          timeout: 0,
+          maxResponseLength: 10000,
+          minContextLength: 1000,
+        },
       }
     });
     app.addServices(mockTaskService);
