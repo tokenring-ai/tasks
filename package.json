@@ -13,7 +13,6 @@
     "async": "^3.2.6"
   },
   "devDependencies": {
-    "vitest": "^4.1.1",
     "typescript": "^6.0.2",
     "@types/async": "^3.2.25"
   },
@@ -23,12 +22,10 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
     "build": "tsc --noEmit",
-    "test:watch": "vitest"
+    "test:watch": "bun test --watch"
   },
   "type": "module"
 }

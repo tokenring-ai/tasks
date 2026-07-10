@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import type Agent from "@tokenring-ai/agent/Agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent.test";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { TaskState } from "./state/taskState.ts";
 import TaskService from "./TaskService.ts";
 import runTasks from "./tools/runTasks.ts";
@@ -29,7 +29,7 @@ describe("runTasks Tool", () => {
           maxResponseLength: 10000,
           minContextLength: 1000,
         },
-      },
+      }
     });
 
     app.addServices(taskService);
@@ -68,13 +68,13 @@ describe("runTasks Tool", () => {
         agentType: "email-sender",
         message: "Send a confirmation email to the customer",
         context: "Email template should include order details and tracking information.",
-      },
+      }
     ];
 
     it("should execute tasks successfully with user approval", async () => {
       spyOn(agent, "askForApproval").mockResolvedValue(true);
       spyOn(taskService, "executeTasks").mockResolvedValue(["✓ Process Data: Completed", "✓ Send Email: Completed"]);
-      spyOn(taskService, "addTask").mockImplementation((task, _agent) => `task-id-${task.name}`);
+      spyOn(taskService, "addTask").mockImplementation((task, agent) => `task-id-${task.name}`);
 
       agent.config.headless = false;
 
@@ -87,32 +87,18 @@ describe("runTasks Tool", () => {
       expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining("Task Plan:"),
         default: true,
-        timeout: 5,
+        timeout: 5
       });
 
       expect(taskService.addTask).toHaveBeenCalledTimes(2);
-      expect(taskService.executeTasks).toHaveBeenCalledWith(expect.arrayContaining([expect.any(String)]), agent);
+      expect(taskService.executeTasks).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.any(String)]),
+        agent
+      );
 
-      expect(result).toEqual({
-        summary: "RunTasks (Executed)",
-        result: "Task plan executed",
-        attachments: [
-          {
-            sendToLLM: true,
-            name: "Task Result (Process Data)",
-            mimeType: "text/markdown",
-            encoding: "text",
-            body: "✓ Process Data: Completed",
-          },
-          {
-            sendToLLM: true,
-            name: "Task Result (Send Email)",
-            mimeType: "text/markdown",
-            encoding: "text",
-            body: "✓ Send Email: Completed",
-          },
-        ],
-      });
+      expect(result).toContain("Task plan executed:");
+      expect(result).toContain("✓ Process Data: Completed");
+      expect(result).toContain("✓ Send Email: Completed");
     });
 
     it("should handle auto-approve timeout", async () => {
@@ -128,7 +114,7 @@ describe("runTasks Tool", () => {
       expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining("Task Plan:"),
         default: true,
-        timeout: 30,
+        timeout: 30
       });
     });
 
@@ -137,7 +123,9 @@ describe("runTasks Tool", () => {
       spyOn(agent, "askForText").mockResolvedValue("The plan is not clear enough");
       agent.config.headless = false;
 
-      await expect(runTasks.execute({ tasks: validTasks }, agent)).rejects.toThrow("Task plan rejected. Reason: The plan is not clear enough");
+      const result = await runTasks.execute({ tasks: validTasks }, agent);
+
+      expect(result).toBe("Task plan rejected. Reason: The plan is not clear enough");
     });
 
     it("should format task plan correctly", async () => {
@@ -158,12 +146,12 @@ describe("runTasks Tool", () => {
       expect(agent.askForApproval).toHaveBeenCalledWith({
         message: expect.stringContaining("1. Test Task (test-agent)"),
         default: true,
-        timeout: 5,
+        timeout: 5
       });
     });
 
     it("should preserve task context information", async () => {
-      spyOn(taskService, "addTask").mockImplementation((task, _agent) => `task-id-${task.name}`);
+      spyOn(taskService, "addTask").mockImplementation((task, agent) => `task-id-${task.name}`);
       spyOn(agent, "askForApproval").mockResolvedValue(true);
       agent.config.headless = false;
 
@@ -178,15 +166,12 @@ describe("runTasks Tool", () => {
 
       await runTasks.execute({ tasks: tasksWithContext }, agent);
 
-      expect(taskService.addTask).toHaveBeenCalledWith(
-        {
-          name: "Complex Task",
-          agentType: "complex-agent",
-          message: "Handle complex business logic",
-          context: "Step 1: Parse input data\nStep 2: Apply transformation\nStep 3: Return formatted result",
-        },
-        agent,
-      );
+      expect(taskService.addTask).toHaveBeenCalledWith({
+        name: "Complex Task",
+        agentType: "complex-agent",
+        message: "Handle complex business logic",
+        context: "Step 1: Parse input data\nStep 2: Apply transformation\nStep 3: Return formatted result",
+      }, agent);
     });
 
     it("should handle multiple tasks with different agents", async () => {
@@ -211,14 +196,17 @@ describe("runTasks Tool", () => {
         },
       ];
 
-      spyOn(taskService, "addTask").mockImplementation((task, _agent) => `task-id-${task.name}`);
+      spyOn(taskService, "addTask").mockImplementation((task, agent) => `task-id-${task.name}`);
       spyOn(agent, "askForApproval").mockResolvedValue(true);
       agent.config.headless = false;
 
       await runTasks.execute({ tasks: mixedTasks }, agent);
 
       expect(taskService.addTask).toHaveBeenCalledTimes(3);
-      expect(taskService.executeTasks).toHaveBeenCalledWith(expect.arrayContaining([expect.any(String), expect.any(String), expect.any(String)]), agent);
+      expect(taskService.executeTasks).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.any(String), expect.any(String), expect.any(String)]),
+        agent
+      );
     });
   });
 
@@ -233,7 +221,7 @@ describe("runTasks Tool", () => {
         },
       ];
 
-      spyOn(taskService, "addTask").mockImplementation((task, _agent) => `task-id-${task.name}`);
+      spyOn(taskService, "addTask").mockImplementation((task, agent) => `task-id-${task.name}`);
       spyOn(agent, "askForApproval").mockResolvedValue(true);
       agent.config.headless = false;
 
@@ -248,25 +236,18 @@ describe("runTasks Tool", () => {
       spyOn(agent, "askForText").mockResolvedValue("The plan is not clear enough");
       agent.config.headless = false;
 
-      await expect(
-        runTasks.execute(
-          {
-            tasks: [
-              {
-                taskName: "Download File",
-                agentType: "downloader",
-                message: "Download the latest release from GitHub",
-                context: "URL: https://github.com/example/repo/releases/latest",
-              },
-            ],
-          },
-          agent,
-        ),
-      ).rejects.toThrow("Task plan rejected. Reason: The plan is not clear enough");
+      await runTasks.execute({
+        tasks: [{
+          taskName: "Download File",
+          agentType: "downloader",
+          message: "Download the latest release from GitHub",
+          context: "URL: https://github.com/example/repo/releases/latest",
+        }]
+      }, agent);
 
       expect(agent.askForText).toHaveBeenCalledWith({
         message: "Please explain why you are rejecting this task plan:",
-        label: "Reason:",
+        label: "Reason:"
       });
     });
   });
