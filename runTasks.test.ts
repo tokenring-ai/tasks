@@ -94,7 +94,7 @@ describe("runTasks Tool", () => {
       expect(taskService.executeTasks).toHaveBeenCalledWith(expect.arrayContaining([expect.any(String)]), agent);
 
       expect(result).toEqual({
-        summary: "RunTasks (Executed)",
+        message: "**Tasks** Ran 2 tasks",
         result: "Task plan executed",
         attachments: [
           {

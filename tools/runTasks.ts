@@ -52,7 +52,7 @@ async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): P
   // Execute all tasks
   const results = await taskService.executeTasks(taskIds, agent);
   return {
-    summary: "RunTasks (Executed)",
+    message: `**Tasks** Ran ${results.length} tasks`,
     result: `Task plan executed`,
     attachments: results.map((result, i) => ({
       sendToLLM: true,
