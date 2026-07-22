@@ -68,7 +68,6 @@ pkg/tasks/
 │   └── tasks.ts                # RPC endpoint implementations
 ├── package.json                # Package metadata and dependencies
 ├── README.md                   # This documentation
-├── vitest.config.ts            # Test configuration
 ├── runTasks.test.ts            # Tool tests
 └── tasksCommand.test.ts        # Command tests
 ```
@@ -1094,7 +1093,7 @@ await agent.executeTool("tasks_run", {
       agentType: "test-engineer",
       message: "Create integration tests",
       context:
-        "Write integration tests using vitest and React Testing Library. Test " +
+        "Write integration tests using bun test and React Testing Library. Test " +
         "API endpoints, component interactions, and user flows. Include edge " +
         "cases and error scenarios.",
     },
@@ -1192,7 +1191,7 @@ Failed tasks include detailed error information:
 
 ## Testing
 
-The package uses vitest for unit testing. Run tests with:
+The package uses bun test for unit testing. Run tests with:
 
 ```bash
 bun run test
@@ -1241,7 +1240,7 @@ bun run test:ui
 
 ### Development Dependencies
 
-- `vitest` (^4.1.1) - Testing framework
+- `bun test` - Testing framework
 - `typescript` (^6.0.2) - TypeScript compiler
 - `@types/async` (^3.2.25) - Async library type definitions
 
