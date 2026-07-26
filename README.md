@@ -44,7 +44,7 @@ workspace dependency.
 ## Package Structure
 
 ```text
-pkg/tasks/
+plugin/tasks/
 ├── index.ts                    # Package exports (TaskService, Task type)
 ├── TaskService.ts              # Main task management service
 ├── schema.ts                   # Configuration schemas
@@ -66,6 +66,7 @@ pkg/tasks/
 ├── rpc/
 │   ├── schema.ts               # RPC schema definitions
 │   └── tasks.ts                # RPC endpoint implementations
+├── bun.config.ts               # Bun test configuration
 ├── package.json                # Package metadata and dependencies
 ├── README.md                   # This documentation
 ├── runTasks.test.ts            # Tool tests
@@ -231,15 +232,26 @@ export const TaskServiceConfigSchema = z
   .object({
     agentDefaults: z
       .object({
-        autoApprove: z.number().default(0),
-        parallel: z.number().default(1),
-        allowedSubAgents: z.array(z.string()).default([]),
+        autoApprove: z
+          .number()
+          .default(0)
+          .meta({ description: "Number of sub-tasks to auto-approve before requiring user confirmation" }),
+        parallel: z
+          .number()
+          .default(1)
+          .meta({ description: "Maximum number of sub-tasks run in parallel" }),
+        allowedSubAgents: z
+          .array(z.string())
+          .default([])
+          .meta({ description: "Agent types allowed to be spawned as sub-tasks" }),
         subAgent: SubAgentConfigSchema.prefault({}),
       })
-      .prefault({}),
+      .prefault({})
+      .meta({ label: "Agent Defaults" }),
   })
   .strict()
-  .prefault({});
+  .prefault({})
+  .meta({ label: "Tasks", description: "Sub-task delegation settings for agents" });
 ```
 
 ### Auto-Approve
@@ -458,7 +470,7 @@ const inputSchema = z.object({
 
 ```typescript
 {
-  summary: "RunTasks (Executed)",
+  message: "**Tasks** Ran <count> tasks",
   result: "Task plan executed",
   attachments: [
     {
@@ -986,8 +998,8 @@ export default {
     app.waitForService(RpcService, (rpcService) => {
       rpcService.registerEndpoint(tasksRPC);
     });
-  },
-  config: packageConfigSchema,
+    },
+  configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
 ```
 
@@ -1006,7 +1018,7 @@ export default {
 - **Error Handling**: `ToolCallError` for task plan rejection
 - **Context Handlers**: Requires `available-agents` context handler for agent
   type information
-- **Return Format**: `TokenRingToolResult` with `summary`, `result`, and
+- **Return Format**: `TokenRingToolResult` with `message`, `result`, and
   `attachments`
 
 ### Command Integration
@@ -1219,9 +1231,6 @@ bun run test:coverage
 
 # Run tests in watch mode
 bun run test:watch
-
-# Run tests with UI
-bun run test:ui
 ```
 
 ## Dependencies
@@ -1241,7 +1250,7 @@ bun run test:ui
 ### Development Dependencies
 
 - `bun test` - Testing framework
-- `typescript` (^6.0.2) - TypeScript compiler
+- `typescript` (^7.0.2) - TypeScript compiler
 - `@types/async` (^3.2.25) - Async library type definitions
 
 ## Development
@@ -1264,12 +1273,6 @@ bun run test
 
 ```bash
 bun run test:coverage
-```
-
-### Test UI
-
-```bash
-bun run test:ui
 ```
 
 ### Test Watch Mode
