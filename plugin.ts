@@ -20,17 +20,20 @@ export default {
   displayName: "Task Orchestration",
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app, config) {
+  install(app) {
     app.waitForService(ChatService, chatService => {
       chatService.addTools(...tools);
       chatService.registerContextHandlers(contextHandlers);
     });
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
-    app.addServices(new TaskService(config.tasks));
+    app.addServices(new TaskService());
 
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(tasksRPC);
     });
+  },
+  reconfigure(app, config) {
+    app.requireService(TaskService).reconfigure(config.tasks);
   },
   configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

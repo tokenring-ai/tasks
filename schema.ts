@@ -35,3 +35,6 @@ export const TaskServiceConfigSchema = z
   .strict()
   .prefault({})
   .meta({ label: "Tasks", description: "Sub-task delegation settings for agents" } satisfies ConfigFieldMeta);
+
+export type TaskServiceConfig = z.input<typeof TaskServiceConfigSchema>;
+export type ParsedTaskServiceConfig = z.output<typeof TaskServiceConfigSchema>;

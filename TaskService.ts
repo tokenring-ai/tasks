@@ -6,15 +6,22 @@ import formatError from "@tokenring-ai/utility/error/formatError";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import async from "async";
 import { v4 as uuid } from "uuid";
-import type { z } from "zod";
-import { TaskAgentConfigSchema, type TaskServiceConfigSchema } from "./schema.ts";
+import { type ParsedTaskServiceConfig, TaskAgentConfigSchema, TaskServiceConfigSchema } from "./schema.ts";
 import { type Task, TaskState } from "./state/taskState.ts";
 
 export default class TaskService implements TokenRingService {
   readonly name = "TaskService";
   description = "Provides task management functionality";
 
-  constructor(readonly options: z.output<typeof TaskServiceConfigSchema>) {}
+  options = TaskServiceConfigSchema.parse({});
+
+  constructor(options?: ParsedTaskServiceConfig) {
+    if (options) this.options = options;
+  }
+
+  reconfigure(options: ParsedTaskServiceConfig): void {
+    this.options = options;
+  }
 
   attach(agent: Agent): void {
     const config = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema));
