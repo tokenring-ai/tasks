@@ -1,6 +1,6 @@
-import { SubAgentService } from "@tokenring-ai/agent";
 import type Agent from "@tokenring-ai/agent/Agent";
 import AgentManager from "@tokenring-ai/agent/services/AgentManager";
+import { runSubAgent } from "@tokenring-ai/agent/util/runSubAgent";
 import type { TokenRingService } from "@tokenring-ai/app/types";
 import formatError from "@tokenring-ai/utility/error/formatError";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
@@ -26,7 +26,7 @@ export default class TaskService implements TokenRingService {
   attach(agent: Agent): void {
     const config = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("tasks", TaskAgentConfigSchema));
 
-    const agentManager = agent.requireServiceByType(AgentManager);
+    const agentManager = agent.requireService(AgentManager);
 
     // Resolve wildcards to actual agent types
     const resolvedAllowedAgents = agentManager.getAgentTypesLike(config.allowedSubAgents).map(([type]) => type);
@@ -105,9 +105,7 @@ export default class TaskService implements TokenRingService {
       const subAgentOptions = parentAgent.getState(TaskState).subAgent;
 
       try {
-        const subAgentService = parentAgent.requireServiceByType(SubAgentService);
-
-        const result = await subAgentService.runSubAgent({
+        const result = await runSubAgent({
           agentType: task.agentType,
           headless: parentAgent.headless,
           from: `Task ${task.name}`,

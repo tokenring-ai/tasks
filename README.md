@@ -95,7 +95,7 @@ class TaskService implements TokenRingService {
     );
 
     // Resolves wildcard patterns to actual agent types
-    const agentManager = agent.requireServiceByType(AgentManager);
+    const agentManager = agent.requireService(AgentManager);
     const resolvedAllowedAgents = agentManager
       .getAgentTypesLike(config.allowedSubAgents)
       .map(([type]) => type);
@@ -349,7 +349,7 @@ await agent.executeTool("tasks_run", {
 ```typescript
 import TaskService from "@tokenring-ai/tasks";
 
-const taskService = agent.requireServiceByType(TaskService);
+const taskService = agent.requireService(TaskService);
 
 // Add individual tasks
 const taskId = taskService.addTask(
@@ -900,7 +900,7 @@ Provides current task summaries to agents as context.
 export default function* getContextItems({
   agent,
 }: ContextHandlerOptions): Generator<ContextItem> {
-  const taskService = agent.requireServiceByType(TaskService);
+  const taskService = agent.requireService(TaskService);
   const tasks = taskService.getTasks(agent);
 
   if (tasks.length > 0) {
@@ -1009,7 +1009,7 @@ export default {
 - **AgentCommandService**: Required for command registration
 - **RpcService**: Required for RPC endpoint registration
 - **TaskService**: Automatically registered and available via
-  `agent.requireServiceByType(TaskService)`
+  `agent.requireService(TaskService)`
 
 ### Tool Integration
 
@@ -1117,7 +1117,7 @@ await agent.executeTool("tasks_run", {
 
 ```typescript
 // Batch data processing
-const taskService = agent.requireServiceByType(TaskService);
+const taskService = agent.requireService(TaskService);
 const taskIds = [];
 
 for (const file of dataFiles) {

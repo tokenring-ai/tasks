@@ -22,11 +22,11 @@ export default {
   description: packageJSON.description,
   install(app) {
     app.waitForService(ChatService, chatService => {
-      chatService.addTools(...tools);
+      chatService.addTools(tools);
       chatService.registerContextHandlers(contextHandlers);
     });
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
-    app.addServices(new TaskService());
+    app.addService(new TaskService());
 
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(tasksRPC);

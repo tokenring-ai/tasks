@@ -5,7 +5,7 @@ import TaskService from "../../TaskService.ts";
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 function execute({ agent }: AgentCommandInputType<typeof inputSchema>): string {
-  const tasks = agent.requireServiceByType(TaskService).getTasks(agent);
+  const tasks = agent.requireService(TaskService).getTasks(agent);
   if (tasks.length === 0) return "No tasks in the list";
   const lines = ["Current tasks:"];
   tasks.forEach((task, index) => {

@@ -13,7 +13,7 @@ export default {
 /tasks clear`,
   inputSchema,
   execute: ({ agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    agent.requireServiceByType(TaskService).clearTasks(agent);
+    agent.requireService(TaskService).clearTasks(agent);
     return "Cleared all tasks";
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;

@@ -4,7 +4,7 @@ import TaskService from "../../TaskService.ts";
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 async function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  const taskService = agent.requireServiceByType(TaskService);
+  const taskService = agent.requireService(TaskService);
   const pending = taskService.getTasks(agent).filter(t => t.status === "pending");
   if (pending.length === 0) return "No pending tasks to execute";
   const results = await taskService.executeTasks(

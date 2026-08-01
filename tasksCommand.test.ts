@@ -38,12 +38,12 @@ describe("Tasks Commands", () => {
     mockAgent = createTestingAgent(app);
     mockTaskService.attach(mockAgent);
 
-    spyOn(mockAgent, "requireServiceByType");
+    spyOn(mockAgent, "requireService");
     spyOn(mockAgent, "chatOutput");
     spyOn(mockAgent, "infoMessage");
     spyOn(mockAgent, "errorMessage");
 
-    mockAgent.requireServiceByType.mockReturnValue(mockTaskService);
+    mockAgent.requireService.mockReturnValue(mockTaskService);
   });
 
   afterEach(() => {

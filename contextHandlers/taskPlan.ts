@@ -2,7 +2,7 @@ import type { ContextHandlerOptions, ContextItem } from "@tokenring-ai/chat/sche
 import TaskService from "../TaskService.ts";
 
 export default function* getContextItems({ agent }: ContextHandlerOptions): Generator<ContextItem> {
-  const taskService = agent.requireServiceByType(TaskService);
+  const taskService = agent.requireService(TaskService);
 
   const tasks = taskService.getTasks(agent);
   if (tasks.length > 0) {

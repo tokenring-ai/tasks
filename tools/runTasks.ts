@@ -9,7 +9,7 @@ const name = "tasks_run";
 const displayName = "Tasks/runTasks";
 
 async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const taskService = agent.requireServiceByType(TaskService);
+  const taskService = agent.requireService(TaskService);
 
   agent.chatOutput(`The following task plan has been generated:`);
   agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join("\n"));
