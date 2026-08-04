@@ -1,6 +1,7 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
 import { ToolCallError } from "@tokenring-ai/chat/util/tokenRingTool";
+import numberedList from "@tokenring-ai/utility/string/numberedList";
 import { z } from "zod";
 import { TaskState } from "../state/taskState.ts";
 import TaskService from "../TaskService.ts";
@@ -15,15 +16,14 @@ async function execute({ tasks }: z.output<typeof inputSchema>, agent: Agent): P
   agent.chatOutput(tasks.map(t => `- ${t.taskName}`).join("\n"));
 
   // Check auto-approve setting
-  const autoApproveTimeout = agent.getState(TaskState).autoApprove;
+  const _autoApproveTimeout = agent.getState(TaskState).autoApprove;
 
   // Present task plan to user
-  const taskPlan = tasks.map((task, i) => `${i + 1}. ${task.taskName} (${task.agentType})\n   ${task.message}`).join("\n\n");
+  const taskPlan = numberedList(tasks.map(task => `${task.taskName} (${task.agentType})`));
 
   const approved = await agent.askForApproval({
     message: `Task Plan:\n\n${taskPlan}\n\nApprove this task plan for execution?`,
-    default: true,
-    timeout: autoApproveTimeout > 0 ? autoApproveTimeout : undefined,
+    defaultValue: true,
   });
 
   if (!approved) {
