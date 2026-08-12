@@ -1,24 +1,22 @@
 {
   "name": "@tokenring-ai/tasks",
-  "version": "0.2.0",
-  "description": "Framework for planning and executing complex, multi-agent collaborative workflows.",
+  "version": "0.3.0",
+  "description": "Tasks as markdown files on disk, executed and tracked by agents.",
   "dependencies": {
     "@tokenring-ai/app": "workspace:*",
     "@tokenring-ai/chat": "workspace:*",
     "zod": "^4.4.3",
     "@tokenring-ai/agent": "workspace:*",
     "@tokenring-ai/utility": "workspace:*",
-    "@tokenring-ai/rpc": "workspace:*",
-    "uuid": "14.0.1",
-    "async": "^3.2.6"
+    "@tokenring-ai/rpc": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^7.0.2",
-    "@types/async": "^3.2.25"
+    "typescript": "^7.0.2"
   },
   "exports": {
     ".": "./index.ts",
-    "./*": "./*.ts"
+    "./*": "./*.ts",
+    "./rpc/schema": "./rpc/schema.ts"
   },
   "license": "MIT",
   "scripts": {
